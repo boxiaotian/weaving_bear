@@ -1,11 +1,11 @@
 <template>
   <div class="model">
-    <div class="return" ref="isreturn">
-      <main-nav-bar @onClickReturn="onClickReturn" />
-    </div>
-    <div class="search" ref="search">
-      <van-field v-model="search_value" placeholder="输入想要搜索的机型" />
-      <van-icon name="search" color="#000000" size="15px" />
+    <return-btn @onClickReturn="onClickReturn" />
+    <div class="search_group" ref="search">
+      <div class="search">
+        <van-field v-model="search_value" placeholder="输入想要搜索的机型" />
+        <img src="~assets/img/icon/search.png" />
+      </div>
     </div>
     <div
       class="model_scroll"
@@ -46,7 +46,7 @@
 </template>
 
 <script>
-import { MainNavBar } from "components/index";
+import { ReturnBtn } from "components/index";
 export default {
   data() {
     return {
@@ -290,61 +290,55 @@ export default {
       history.pushState(null, null, document.URL);
       window.addEventListener("popstate", this.onClickReturn, false); //false阻止默认事件
     }
-    const { isreturn, search } = this.$refs;
-    const windowHeight = window.outerHeight * window.dpr;
-    const otherHeight = isreturn.offsetHeight + search.offsetHeight;
-    this.scroll_height = (windowHeight - otherHeight) / window.rem;
+    const windowHeight = window.outerHeight
+      ? window.outerHeight * window.dpr
+      : window.innerHeight;
+    const search_height = this.$refs.search.offsetHeight;
+    this.scroll_height = (windowHeight - search_height) / window.rem;
   },
   destroyed() {
     window.removeEventListener("popstate", this.onClickReturn, false); //false阻止默认事件
   },
   components: {
-    MainNavBar
+    ReturnBtn
   }
 };
 </script>
 
 <style lang="less" scoped>
 .model {
-  padding-top: 108px;
-  .return {
-    position: fixed;
-    top: 0;
-    right: 0;
-    left: 0;
-    width: 100%;
-    height: 108px;
-    padding-bottom: 20px;
-  }
-  .search {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 92%;
-    height: 70px;
-    padding: 12px 38px;
-    margin: auto;
-    border-radius: 35px;
-    border: solid 2px #1b1b1b;
-    .van-cell {
-      padding: 0;
-      font-size: 30px;
-      &::after {
-        border: none;
+  .search_group {
+    padding: 20px 30px;
+    .search {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      height: 70px;
+      padding: 12px 38px;
+      border-radius: 35px;
+      border: solid 2px #1b1b1b;
+      .van-cell {
+        padding: 0;
+        font-size: 30px;
+        &::after {
+          border: none;
+        }
       }
-    }
-    .van-icon-search {
-      position: absolute;
-      top: 50%;
-      right: 24px;
-      transform: translateY(-50%);
+      img {
+        position: absolute;
+        top: 50%;
+        right: 24px;
+        transform: translateY(-50%);
+        width: 30px;
+        height: 30px;
+      }
     }
   }
   .model_scroll {
     display: flex;
     flex-direction: row;
-    padding-top: 20px;
     font-size: 30px;
     overflow: hidden;
     .menu_group {
@@ -362,7 +356,7 @@ export default {
         &.menu_active {
           position: relative;
           background-color: #ffffff;
-          font-weight: 500;
+          font-weight: 700;
           color: #ff7301;
 
           &::after {
@@ -388,7 +382,7 @@ export default {
       scroll-behavior: smooth;
       .model_series {
         margin-top: 30px;
-        font-weight: 500;
+        font-weight: 700;
         .device_group {
           display: flex;
           flex-flow: wrap;

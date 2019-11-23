@@ -1,16 +1,17 @@
 <template>
-  <div>
-    <tab-bar>
-      <tab-bar-item path="/home">
-        <img slot="item-icon" src="~assets/img/tabbar/home_active.png" />
-        <img slot="item-icon-active" src="~assets/img/tabbar/home_active.png" />
-      </tab-bar-item>
-      <tab-bar-item path="/profile">
-        <img slot="item-icon" src="~assets/img/tabbar/profile.png" />
-        <img slot="item-icon-active" src="~assets/img/tabbar/profile.png" />
-      </tab-bar-item>
-    </tab-bar>
-  </div>
+  <tab-bar>
+    <tab-bar-item path="/home">
+      <img slot="item-icon" src="~assets/img/tabbar/home.png" />
+      <img slot="item-icon-active" src="~assets/img/tabbar/home_active.png" />
+    </tab-bar-item>
+    <tab-bar-item path="/profile">
+      <img slot="item-icon" src="~assets/img/tabbar/profile.png" />
+      <img
+        slot="item-icon-active"
+        src="~assets/img/tabbar/profile_active.png"
+      />
+    </tab-bar-item>
+  </tab-bar>
 </template>
 
 <script>

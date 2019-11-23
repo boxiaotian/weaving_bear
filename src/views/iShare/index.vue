@@ -1,6 +1,6 @@
 <template>
   <div class="i_share">
-    <main-nav-bar @onClickReturn="onClickReturn" />
+    <return-btn @onClickReturn="onClickReturn" />
     <div class="i_share_form_group">
       <div class="share_form_title">
         <span>姓名</span>（公益证书上名称将以该名称为准，请认真填写哦）
@@ -32,7 +32,7 @@
 </template>
 
 <script>
-import { MainNavBar } from "components/index";
+import { ReturnBtn } from "components/index";
 export default {
   data() {
     return {
@@ -51,7 +51,7 @@ export default {
         { text: "活动商品", value: 3 },
         { text: "活动商品", value: 3 }
       ],
-      file_list: [{ url: "https://img.yzcdn.cn/vant/leaf.jpg" }]
+      file_list: []
     };
   },
   methods: {
@@ -59,8 +59,6 @@ export default {
       return this.$router.push("/home");
     },
     afterRead(file) {
-      this.file_list = [{ url: file.content }];
-      // 此时可以自行将文件上传至服务器
       console.log(file);
     },
     onNextStep() {
@@ -77,7 +75,7 @@ export default {
     window.removeEventListener("popstate", this.onClickReturn, false); //false阻止默认事件
   },
   components: {
-    MainNavBar
+    ReturnBtn
   }
 };
 </script>
@@ -125,6 +123,7 @@ export default {
           .van-cell {
             width: 100%;
             height: 60px;
+            padding: 0;
             font-size: 30px;
             line-height: 60px;
           }
@@ -132,6 +131,7 @@ export default {
       }
     }
     .van-uploader {
+      margin-top: 38px;
       .van-uploader__wrapper {
         .van-uploader__preview {
           .van-uploader__preview-image {
@@ -139,6 +139,10 @@ export default {
             height: 150px;
             border-radius: 18px;
             border: solid 1px #1b1b1b;
+            img {
+              width: 100%;
+              height: auto;
+            }
           }
         }
       }
@@ -163,16 +167,19 @@ export default {
 </style>
 <style lang="less" scoped>
 .i_share {
-  padding: 88px 30px 60px;
+  padding: 0 30px;
   .i_share_form_group {
-    margin-top: 50px;
+    padding-top: 64px;
+    &:last-child {
+      margin-top: 58px;
+    }
     .share_form_title {
       font-size: 18px;
-      line-height: 36px;
       color: #999999;
       span {
         font-size: 36px;
-        font-weight: 500;
+        font-weight: 700;
+        line-height: 36px;
         color: #000000;
       }
     }
@@ -185,28 +192,17 @@ export default {
       background-color: #f6f6f6;
       border-radius: 45px;
       font-size: 30px;
-      line-height: 47px;
+      line-height: 50px;
       &::after {
         border: none;
-      }
-    }
-    .van-uploader {
-      margin-top: 40px;
-      .van-uploader__wrapper {
-        .van-uploader__input-wrapper {
-          img {
-            width: 120px;
-            height: 150px;
-          }
-        }
       }
     }
   }
   .i_share_form_description {
     width: 100%;
-    min-height: 190px;
+    min-height: 188px;
     padding: 30px 20px;
-    margin: 50px auto 58px;
+    margin: 20px auto 53px;
     background-color: #f6f6f6;
     border-radius: 18px;
   }

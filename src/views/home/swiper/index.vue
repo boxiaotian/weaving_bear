@@ -1,11 +1,9 @@
 <template>
-  <div class="swiper">
-    <swiper :options="swiperOption">
-      <swiper-slide v-for="item in slides" :key="item"
-        ><img src="~assets/img/home/banner.png"
-      /></swiper-slide>
-    </swiper>
-  </div>
+  <swiper :options="swiperOption">
+    <swiper-slide v-for="item in slides" :key="item"
+      ><img src="~assets/img/home/banner.png"
+    /></swiper-slide>
+  </swiper>
 </template>
 <script>
 import { swiper, swiperSlide } from "vue-awesome-swiper";
@@ -44,44 +42,40 @@ export default {
 };
 </script>
 <style lang="less" scoped>
-.swiper {
-  width: 100%;
-  height: 600px;
-  .swiper-container {
-    .swiper-wrapper {
-      .swiper-slide {
-        position: relative;
-        width: 690px;
-        height: 600px;
+.swiper-container {
+  .swiper-wrapper {
+    .swiper-slide {
+      position: relative;
+      width: 690px;
+      height: 600px;
+      border-radius: 18px;
+      img {
+        width: 100%;
+        height: 560px;
+        margin: 20px auto;
+        transition: all 0.5s ease 0s;
+        background-color: #ffffff;
         border-radius: 18px;
-        img {
-          width: 100%;
-          height: 560px;
-          margin: 20px auto;
-          transition: all 0.5s ease 0s;
-          background-color: #ffffff;
-          border-radius: 18px;
-        }
+      }
+      &::before {
+        content: "";
+        position: absolute;
+        width: 100%;
+        height: 560px;
+        margin: 20px auto 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        border-radius: 18px;
+      }
+      &.swiper-slide-active {
         &::before {
           content: "";
-          position: absolute;
-          width: 100%;
-          height: 560px;
-          margin: 20px auto 0;
-          background-color: rgba(0, 0, 0, 0.5);
-          border-radius: 18px;
+          display: none;
         }
-        &.swiper-slide-active {
-          &::before {
-            content: "";
-            display: none;
-          }
-          img {
-            margin-top: 0;
-            width: 100%;
-            height: 100%;
-            box-shadow: 0px 20px 40px 0px rgba(0, 0, 0, 0.08);
-          }
+        img {
+          margin-top: 0;
+          width: 100%;
+          height: 100%;
+          box-shadow: 0px 20px 40px 0px rgba(0, 0, 0, 0.08);
         }
       }
     }

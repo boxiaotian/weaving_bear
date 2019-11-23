@@ -1,6 +1,6 @@
 <template>
   <div class="share_generate">
-    <main-nav-bar @onClickReturn="onClickReturn" />
+    <return-btn @onClickReturn="onClickReturn" />
     <div class="share_generate_group">
       <h6>学生名称</h6>
       <div>
@@ -82,7 +82,7 @@
 </template>
 
 <script>
-import { MainNavBar } from "components/index";
+import { ReturnBtn } from "components/index";
 export default {
   methods: {
     onClickReturn() {
@@ -100,18 +100,18 @@ export default {
     window.removeEventListener("popstate", this.onClickReturn, false); //false阻止默认事件
   },
   components: {
-    MainNavBar
+    ReturnBtn
   }
 };
 </script>
 
 <style lang="less" scoped>
 .share_generate {
-  padding: 88px 30px 0;
+  padding: 0 30px;
   .share_generate_group {
     h6 {
       font-size: 30px;
-      font-weight: 500;
+      font-weight: 700;
       line-height: 90px;
     }
     .share_drawing {
@@ -121,7 +121,7 @@ export default {
     }
     h5 {
       font-size: 36px;
-      font-weight: 500;
+      font-weight: 700;
       line-height: 36px;
       text-align: center;
     }
@@ -145,7 +145,7 @@ export default {
         height: 80px;
         margin: auto;
         font-size: 36px;
-        font-weight: 500;
+        font-weight: 700;
       }
     }
     .charitable_school {

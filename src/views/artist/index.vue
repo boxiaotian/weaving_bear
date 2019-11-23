@@ -1,14 +1,12 @@
 <template>
   <div class="artist">
-    <main-nav-bar @onClickReturn="onClickReturn" />
-    <div class="artist_group">
-      <artist-item v-for="item in artist_list" :key="item" :artist="{ item }" />
-    </div>
+    <return-btn @onClickReturn="onClickReturn" />
+    <artist-item v-for="item in artist_list" :key="item" :artist="{ item }" />
   </div>
 </template>
 
 <script>
-import { MainNavBar, ArtistItem } from "components/index";
+import { ReturnBtn, ArtistItem } from "components/index";
 export default {
   data() {
     return {
@@ -31,7 +29,7 @@ export default {
     window.removeEventListener("popstate", this.onClickReturn, false); //false阻止默认事件
   },
   components: {
-    MainNavBar,
+    ReturnBtn,
     ArtistItem
   }
 };
@@ -39,11 +37,9 @@ export default {
 
 <style lang="less" scoped>
 .artist {
-  padding: 88px 30px 0;
-  .artist_group {
-    display: flex;
-    flex-flow: wrap;
-    justify-content: space-between;
-  }
+  display: flex;
+  flex-flow: wrap;
+  justify-content: space-between;
+  padding: 0 30px;
 }
 </style>

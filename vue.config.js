@@ -1,4 +1,11 @@
+let filePath;
+if (process.env.NODE_ENV == "development") {
+  filePath = "/";
+} else {
+  filePath = "/static";
+}
 module.exports = {
+  publicPath: filePath,
   configureWebpack: {
     resolve: {
       alias: {

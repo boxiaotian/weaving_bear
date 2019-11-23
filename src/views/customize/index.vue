@@ -1,11 +1,6 @@
 <template>
   <div class="customize">
-    <div class="return" ref="isreturn">
-      <main-nav-bar
-        @onClickReturn="onClickReturn"
-        :title="`定制${$route.meta.title}`"
-      />
-    </div>
+    <return-btn @onClickReturn="onClickReturn" />
     <div class="customize_group">
       <div
         class="customize_commodity"
@@ -66,7 +61,13 @@
       </div>
       <div class="upload_img" ref="upload_img">
         <van-uploader :max-count="1" :after-read="afterRead">
-          <van-button type="primary" text="上传图片" color="#ffa868" round />
+          <van-button
+            type="primary"
+            text="上传图片"
+            capture="camera"
+            color="#ffa868"
+            round
+          />
         </van-uploader>
         <div>*请注意所上传图片的清晰度和尺寸大小，以免实物制作效果不佳</div>
       </div>
@@ -76,7 +77,7 @@
 </template>
 
 <script>
-import { MainNavBar } from "components/index";
+import { ReturnBtn } from "components/index";
 export default {
   data() {
     return {
@@ -121,19 +122,21 @@ export default {
       history.pushState(null, null, document.URL);
       window.addEventListener("popstate", this.onClickReturn, false); //false阻止默认事件
     }
-    const { isreturn, upload_img, customize_info } = this.$refs;
-    const windowHeight = window.outerHeight * window.dpr;
-    const otherHeight = isreturn.offsetHeight + upload_img.offsetHeight;
+    const { upload_img, customize_info } = this.$refs;
+    const windowHeight = window.outerHeight
+      ? window.outerHeight * window.dpr
+      : window.innerHeight;
+    const uploadHeight = upload_img.offsetHeight;
     const infoHeight = customize_info.offsetHeight;
-    this.customize_height = (windowHeight - otherHeight) / window.rem;
+    this.customize_height = (windowHeight - uploadHeight) / window.rem;
     this.customize_info_height =
-      (windowHeight - otherHeight - infoHeight) / window.rem;
+      (windowHeight - uploadHeight - infoHeight) / window.rem;
   },
   destroyed() {
     window.removeEventListener("popstate", this.onClickReturn, false); //false阻止默认事件
   },
   components: {
-    MainNavBar
+    ReturnBtn
   }
 };
 </script>
@@ -152,7 +155,7 @@ export default {
           .van-uploader__input-wrapper {
             .van-button--normal {
               font-size: 36px;
-              font-weight: 500;
+              font-weight: 700;
             }
           }
         }
@@ -163,15 +166,6 @@ export default {
 </style>
 <style lang="less" scoped>
 .customize {
-  padding-top: 88px;
-  .return {
-    position: fixed;
-    top: 0;
-    right: 0;
-    left: 0;
-    width: 100%;
-    height: 88px;
-  }
   .customize_group {
     .customize_commodity {
       position: relative;
@@ -182,12 +176,9 @@ export default {
         align-items: center;
         justify-content: center;
         .pillow_front_back {
-          position: absolute;
-          top: 80px;
-          left: 50%;
-          transform: translateX(-50%);
           width: 400px;
           height: 80px;
+          margin-bottom: 114px;
           border-radius: 40px;
           border: solid 2px #ff7024;
           font-size: 36px;
@@ -211,8 +202,8 @@ export default {
           }
         }
         img {
-          width: 60%;
-          height: auto;
+          width: auto;
+          height: 56%;
         }
       }
       .customize_info {
@@ -255,6 +246,7 @@ export default {
       padding: 26px 30px;
       background-color: #ffffff;
       color: #999999;
+      font-size: 24px;
       .van-uploader {
         width: 690px;
         height: 90px;

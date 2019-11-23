@@ -1,6 +1,6 @@
 <template>
   <div class="artist_works">
-    <main-nav-bar @onClickReturn="onClickReturn" />
+    <return-btn @onClickReturn="onClickReturn" />
     <div class="artist_work">
       <good-item
         v-for="item in customize_list"
@@ -29,7 +29,7 @@
 </template>
 
 <script>
-import { MainNavBar, GoodItem } from "components/index";
+import { ReturnBtn, GoodItem } from "components/index";
 export default {
   data() {
     return {
@@ -74,7 +74,7 @@ export default {
     window.removeEventListener("popstate", this.onClickReturn, false); //false阻止默认事件
   },
   components: {
-    MainNavBar,
+    ReturnBtn,
     GoodItem
   }
 };
@@ -82,7 +82,7 @@ export default {
 
 <style lang="less" scoped>
 .artist_works {
-  padding: 88px 30px 0;
+  padding: 0 30px;
   .artist_work {
     display: flex;
     flex-flow: wrap;
@@ -92,7 +92,7 @@ export default {
       .good_price {
         margin: 30px auto;
         font-size: 36px;
-        font-weight: 500;
+        font-weight: 700;
         color: #ff7024;
         span {
           font-size: 24px;

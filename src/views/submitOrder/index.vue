@@ -1,6 +1,6 @@
 <template>
   <div class="submit_order">
-    <main-nav-bar @onClickReturn="onClickReturn" />
+    <return-btn @onClickReturn="onClickReturn" />
     <div class="receipt_info">
       <img class="address" src="@/assets/img/icon/address.png" />
       <!-- <span>请添加收货地址</span> -->
@@ -80,11 +80,11 @@
 </template>
 
 <script>
-import { MainNavBar } from "components/index";
+import { ReturnBtn } from "components/index";
 export default {
   methods: {
     onClickReturn() {
-      return this.$router.push("/ProductDetails");
+      this.$router.replace("/productDetails");
     },
     onSubmitOrder() {
       this.$router.push("/paySuccess");
@@ -101,14 +101,15 @@ export default {
     window.removeEventListener("popstate", this.onClickReturn, false); //false阻止默认事件
   },
   components: {
-    MainNavBar
+    ReturnBtn
   }
 };
 </script>
 
 <style lang="less" scoped>
 .submit_order {
-  padding: 88px 30px 100px;
+  padding: 0 30px;
+  padding-bottom: 100px;
   .receipt_info {
     display: flex;
     flex-direction: row;
@@ -265,7 +266,7 @@ export default {
       }
     }
     .submit_order_total {
-      font-weight: 500;
+      font-weight: 700;
       color: #ff7301;
       span {
         font-size: 36px;

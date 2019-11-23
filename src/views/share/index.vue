@@ -1,6 +1,6 @@
 <template>
   <div class="share">
-    <main-nav-bar @onClickReturn="onClickReturn" />
+    <return-btn @onClickReturn="onClickReturn" />
     <div class="share_group">
       <h6>江西工业工程职业技术学院</h6>
       <img class="share_drawing" src="~assets/img/share/user_img.png" />
@@ -41,7 +41,7 @@
 </template>
 
 <script>
-import { MainNavBar } from "components/index";
+import { ReturnBtn } from "components/index";
 export default {
   methods: {
     onClickReturn() {
@@ -61,26 +61,26 @@ export default {
     window.removeEventListener("popstate", this.onClickReturn, false); //false阻止默认事件
   },
   components: {
-    MainNavBar
+    ReturnBtn
   }
 };
 </script>
 
 <style lang="less" scoped>
 .share {
-  padding: 88px 30px 0;
+  padding: 60px 30px;
   .share_group {
     width: 100%;
     min-height: 914px;
     padding: 62px 50px 80px;
-    margin: 60px auto 70px;
+    margin-bottom: 70px;
     background-color: #ffffff;
     box-shadow: 0px 0px 40px 0px rgba(0, 0, 0, 0.05);
     border-radius: 50px;
     h6 {
       font-size: 36px;
       line-height: 44px;
-      font-weight: 500;
+      font-weight: 700;
     }
     .share_drawing {
       width: 100%;
@@ -118,7 +118,7 @@ export default {
         line-height: 32px;
         h6 {
           font-size: 30px;
-          font-weight: 500;
+          font-weight: 700;
         }
       }
       img {
@@ -132,9 +132,9 @@ export default {
     display: block;
     width: 500px;
     height: 100px;
-    margin: 0 auto 65px;
+    margin: 0 auto;
     font-size: 36px;
-    font-weight: 500;
+    font-weight: 700;
   }
 }
 </style>

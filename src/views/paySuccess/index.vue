@@ -1,6 +1,5 @@
 <template>
   <div class="pay_success">
-    <main-nav-bar @onClickReturn="onClickReturn" />
     <van-icon name="passed" color="#00cc00" size="100" />
     <div class="pay_success_title">订单支付成功</div>
     <div class="pay_success_price">￥28.88</div>
@@ -14,13 +13,8 @@
 </template>
 
 <script>
-import { MainNavBar } from "components/index";
 export default {
-  methods: {
-    onClickReturn() {
-      return this.$router.push("/submitOrder");
-    }
-  },
+  methods: {},
   mounted() {
     if (window.history && window.history.pushState) {
       history.pushState(null, null, document.URL);
@@ -29,9 +23,6 @@ export default {
   },
   destroyed() {
     window.removeEventListener("popstate", this.onClickReturn, false); //false阻止默认事件
-  },
-  components: {
-    MainNavBar
   }
 };
 </script>
@@ -50,12 +41,12 @@ export default {
   .pay_success_title {
     margin: 70px auto;
     line-height: 36px;
-    font-weight: 500;
+    font-weight: 700;
   }
   .pay_success_price {
     font-size: 72px;
     line-height: 72px;
-    font-weight: 500;
+    font-weight: 700;
   }
   .pay_success_stocking {
     margin: 30px auto 68px;

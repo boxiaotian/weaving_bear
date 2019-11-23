@@ -27,23 +27,20 @@ export default {
   align-items: center;
   width: 330px;
   min-height: 400px;
-  margin-bottom: 30px;
+  margin-top: 30px;
   background-color: #ffffff;
   box-shadow: 0px 0px 40px 0px rgba(0, 0, 0, 0.05);
   border-radius: 18px;
-  font-weight: 500;
-
+  font-weight: 700;
   img {
     width: 280px;
     height: 280px;
   }
-
   .good_item_title {
     font-size: 30px;
     line-height: 38px;
     color: #333333;
   }
-
   .good_item_detail {
     margin-top: 8px;
     font-size: 24px;

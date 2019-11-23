@@ -29,7 +29,7 @@ export default {
   box-shadow: 0px 0px 40px 0px rgba(0, 0, 0, 0.05);
   border-radius: 18px;
   font-size: 30px;
-  font-weight: 500;
+  font-weight: 700;
   line-height: 38px;
   color: #333333;
   text-align: center;

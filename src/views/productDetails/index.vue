@@ -1,6 +1,6 @@
 <template>
   <div class="confirm_order">
-    <main-nav-bar @onClickReturn="onClickReturn" />
+    <return-btn @onClickReturn="onClickReturn" />
     <div
       class="swipe_group"
       :style="{ height: swipeHeight.toFixed(3) + 'rem' }"
@@ -49,7 +49,9 @@
       <div class="commodity_info_name">
         定制手机壳
       </div>
-      <div class="commodity_info_brief">商品简介商品简介商品简介</div>
+      <div class="commodity_info_brief">
+        1.商品简介商品简介商品简介2.商品简介商品简介商品简介3.商品简介商品简介商品简介
+      </div>
       <div class="commodity_overall_norm">
         <div>
           <h6>机型</h6>
@@ -114,8 +116,8 @@
         </van-popup>
       </div>
       <van-cell title="选择数量">
-        <van-stepper slot="right-icon" v-model="number_value" integer
-      /></van-cell>
+        <van-stepper slot="right-icon" v-model="number_value" integer />
+      </van-cell>
       <van-cell title="价格">
         <div slot="right-icon" class="commodity_info_price">￥28.88</div>
       </van-cell>
@@ -127,7 +129,7 @@
 </template>
 
 <script>
-import { MainNavBar } from "components/index";
+import { ReturnBtn } from "components/index";
 export default {
   data() {
     return {
@@ -233,7 +235,7 @@ export default {
     window.removeEventListener("popstate", this.onClickReturn, false); //false阻止默认事件
   },
   components: {
-    MainNavBar
+    ReturnBtn
   }
 };
 </script>
@@ -267,7 +269,7 @@ export default {
       .charitable_projects {
         .van-popup--bottom {
           &.van-popup--round {
-            padding: 0 30px;
+            padding: 0;
             .van-picker {
               .van-hairline--top-bottom {
                 height: 90px;
@@ -311,13 +313,16 @@ export default {
             border-radius: 40px;
             background-color: #ff7301;
             font-size: 30px;
-            font-weight: 500;
+            font-weight: 700;
             color: #ffffff;
+            vertical-align: top;
             &::after {
-              width: 2px; /* px */
+              width: 4px;
+              height: 15px;
             }
             &::before {
-              height: 2px; /* px */
+              width: 15px;
+              height: 4px;
             }
           }
           .van-stepper__minus--disabled {
@@ -328,8 +333,10 @@ export default {
             color: #ff7301;
           }
           .van-stepper__input {
+            vertical-align: top;
             width: 66px;
             height: 40px;
+            margin: 0;
             background-color: #ffffff;
             font-size: 30px;
           }
@@ -341,8 +348,6 @@ export default {
 </style>
 <style lang="less" scoped>
 .confirm_order {
-  padding-top: 88px;
-  background-color: #f6f6f6;
   .swipe_group {
     width: 100%;
     height: 750px;
@@ -381,7 +386,7 @@ export default {
     background-color: #ffffff;
     font-size: 36px;
     line-height: 44px;
-    font-weight: 500;
+    font-weight: 700;
     color: #333333;
     .commodity_info_name {
       overflow: hidden;
@@ -444,7 +449,7 @@ export default {
     &.van-popup--round {
       width: 100%;
       height: 950px;
-      padding: 50px 40px;
+      padding: 56px 40px;
       background-color: #ffffff;
       border-radius: 30px 30px 0 0;
       .commodity_info_name {
@@ -453,9 +458,9 @@ export default {
         white-space: nowrap;
         font-size: 36px;
         line-height: 44px;
-        font-weight: 500;
+        font-weight: 700;
         color: #333333;
-        margin-bottom: 16px;
+        margin-bottom: 14px;
       }
       .commodity_info_brief {
         width: 100%;
@@ -473,7 +478,7 @@ export default {
       .commodity_overall_norm {
         display: flex;
         flex-direction: row;
-        div {
+        & > div {
           &:nth-child(1) {
             min-width: 50%;
             margin-right: 30px;
@@ -481,16 +486,15 @@ export default {
         }
         h6 {
           font-size: 28px;
+          line-height: 28px;
           color: #333333;
         }
       }
       .charitable_projects {
-        padding-bottom: 24px;
         border-bottom: solid 1px #dbdbdb; /* px */
         h6 {
-          margin-top: 30px;
           font-size: 28px;
-          line-height: 36px;
+          line-height: 28px;
           color: #333333;
           span {
             font-size: 18px;
@@ -500,6 +504,7 @@ export default {
         }
         .commodity_charitable_select {
           display: inline-block;
+          margin: 26px 0 48px;
         }
       }
       .commodity_norm_select,
@@ -509,7 +514,7 @@ export default {
         min-width: 240px;
         height: 50px;
         padding: 0 40px 0 20px;
-        margin: 26px 0;
+        margin: 26px 0 58px;
         background-color: #eeeeee;
         border-radius: 25px;
         font-size: 30px;
@@ -533,29 +538,33 @@ export default {
         flex-direction: row;
         align-items: center;
         justify-content: space-between;
-        margin-top: 56px;
+        padding: 0;
+        margin-top: 60px;
         font-size: 28px;
         color: #333333;
+        &:last-child {
+          margin-top: 52px;
+        }
         .van-stepper {
           width: 150px;
           height: 40px;
         }
         .commodity_info_price {
           font-size: 36px;
-          font-weight: 500;
+          font-weight: 700;
           color: #ff0000;
         }
       }
       .commodity_shopping {
         width: 95.2%;
         height: 88px;
-        margin: 50px auto;
+        margin: 46px auto 0;
         background-color: #ff7301;
         box-shadow: 0px 0px 24px 0px rgba(0, 0, 0, 0.05);
         border-radius: 44px;
         font-size: 36px;
         line-height: 88px;
-        font-weight: 500;
+        font-weight: 700;
         color: #ffffff;
         text-align: center;
       }

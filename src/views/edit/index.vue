@@ -1,10 +1,10 @@
 <template>
-  <div class="edit">
-    <main-nav-bar
-      :title="`编辑${$route.meta.title}`"
-      right_text="保存"
-      @onClickReturn="onClickReturn"
-      @onClickRight="onSaveEdit"
+  <div class="edit" :style="{ height: edit_height.toFixed(3) + 'rem' }">
+    <return-btn @onClickReturn="onClickReturn" />
+    <img
+      class="save"
+      src="~assets/img/customize/save_btn.png"
+      @click="onSaveEdit"
     />
     <div class="pillow_front_back" v-if="$route.params.type == 'pillow'">
       <div :class="[isfront && 'pillow_front']" @click="onPillowFront">
@@ -15,33 +15,32 @@
       </div>
     </div>
     <div class="edit_group">
-      <div>
-        <img
-          v-if="$route.params.type == 'phone'"
-          src="~assets/img/customize/phone_case_big.png"
-        />
-        <img
-          v-if="$route.params.type == 'cup'"
-          src="~assets/img/customize/cup_big.png"
-        />
-        <img
-          v-if="$route.params.type == 'pillow'"
-          src="~assets/img/customize/pillow_big.png"
-        />
-        <img
-          v-if="$route.params.type == 'satchel'"
-          src="~assets/img/customize/satchel_big.png"
-        />
-      </div>
+      <img
+        v-if="$route.params.type == 'phone'"
+        src="~assets/img/customize/phone_case_big.png"
+      />
+      <img
+        v-if="$route.params.type == 'cup'"
+        src="~assets/img/customize/cup_big.png"
+      />
+      <img
+        v-if="$route.params.type == 'pillow'"
+        src="~assets/img/customize/pillow_big.png"
+      />
+      <img
+        v-if="$route.params.type == 'satchel'"
+        src="~assets/img/customize/satchel_big.png"
+      />
     </div>
   </div>
 </template>
 
 <script>
-import { MainNavBar } from "components/index";
+import { ReturnBtn } from "components/index";
 export default {
   data() {
     return {
+      edit_height: 0,
       isfront: true,
       isback: false
     };
@@ -69,12 +68,16 @@ export default {
       history.pushState(null, null, document.URL);
       window.addEventListener("popstate", this.onClickReturn, false); //false阻止默认事件
     }
+    const windowHeight = window.outerHeight
+      ? window.outerHeight * window.dpr
+      : window.innerHeight;
+    this.edit_height = windowHeight / window.rem;
   },
   destroyed() {
     window.removeEventListener("popstate", this.onClickReturn, false); //false阻止默认事件
   },
   components: {
-    MainNavBar
+    ReturnBtn
   }
 };
 </script>
@@ -87,13 +90,12 @@ export default {
       right: 30px;
       transform: translateY(50%);
       font-size: 30px;
-      font-weight: 500;
+      font-weight: 700;
       width: 60px;
       height: 60px;
+      line-height: 60px;
       .van-nav-bar__text {
         padding: 0;
-        font-size: 30px;
-        line-height: 60px;
         color: #ff7301;
       }
     }
@@ -103,10 +105,13 @@ export default {
 <style lang="less" scoped>
 .edit {
   position: relative;
-  padding-top: 88px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   .pillow_front_back {
     position: absolute;
-    top: 168px;
+    top: 80px;
     left: 50%;
     transform: translateX(-50%);
     width: 400px;
@@ -137,13 +142,20 @@ export default {
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 100%;
-    height: 500px;
-    margin-top: 330px;
+    width: 600px;
+    height: 600px;
     img {
+      display: inline-block;
       width: auto;
-      height: 500px;
+      height: 600px;
     }
+  }
+  .save {
+    position: fixed;
+    right: 0;
+    bottom: 300px;
+    width: 150px;
+    height: 150px;
   }
 }
 </style>

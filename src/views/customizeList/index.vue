@@ -1,6 +1,6 @@
 <template>
   <div class="customize_list">
-    <main-nav-bar @onClickReturn="onClickReturn" />
+    <return-btn @onClickReturn="onClickReturn" />
     <div class="customize_list_group">
       <good-item
         v-for="item in customize_list"
@@ -26,7 +26,7 @@
 </template>
 
 <script>
-import { MainNavBar, GoodItem } from "components/index";
+import { ReturnBtn, GoodItem } from "components/index";
 export default {
   data() {
     return {
@@ -74,17 +74,8 @@ export default {
       }
     }
   },
-  mounted() {
-    if (window.history && window.history.pushState) {
-      history.pushState(null, null, document.URL);
-      window.addEventListener("popstate", this.onClickReturn, false); //false阻止默认事件
-    }
-  },
-  destroyed() {
-    window.removeEventListener("popstate", this.onClickReturn, false); //false阻止默认事件
-  },
   components: {
-    MainNavBar,
+    ReturnBtn,
     GoodItem
   }
 };
@@ -92,12 +83,11 @@ export default {
 
 <style lang="less" scoped>
 .customize_list {
-  padding: 88px 0 98px;
+  padding: 0 30px;
   .customize_list_group {
     display: flex;
     flex-flow: wrap;
     justify-content: space-between;
-    padding: 22px 30px;
   }
 }
 </style>

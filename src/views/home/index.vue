@@ -1,6 +1,5 @@
 <template>
   <div class="home">
-    <!-- <main-nav-bar :left_arrow="false" /> -->
     <home-swiper />
     <div class="my_special">
       <router-link to="/customizeList" tag="div">
@@ -31,7 +30,9 @@
         <router-link to="/charityPool">查看更多>></router-link>
       </div>
       <div class="public_welfare_group">
-        <div
+        <router-link
+          to="/foundation"
+          tag="div"
           class="public_welfare_item"
           v-for="(item, index) in public_welfare_list"
           :key="index"
@@ -49,7 +50,7 @@
               <p>支持人数</p>
             </div>
           </div>
-        </div>
+        </router-link>
       </div>
     </div>
     <div class="bottom_line">--人家是有底线的--</div>
@@ -119,7 +120,7 @@ export default {
       flex-direction: row;
       align-items: center;
       font-size: 30px;
-      font-weight: 500;
+      font-weight: 700;
       line-height: 38px;
       color: #333333;
       img {
@@ -165,7 +166,7 @@ export default {
         .public_welfare_name {
           font-size: 30px;
           line-height: 38px;
-          font-weight: 500;
+          font-weight: 700;
           color: #333333;
 
           span {
@@ -192,7 +193,7 @@ export default {
           margin-bottom: 10px;
           font-size: 24px;
           line-height: 32px;
-          font-weight: 500;
+          font-weight: 700;
           color: #999999;
           .amount_number,
           .stand_by_number {

@@ -1,16 +1,14 @@
 <template>
-  <div>
-    <van-nav-bar
-      :title="title"
-      :left-arrow="left_arrow"
-      :right-text="right_text"
-      fixed
-      border
-      :z-index="2"
-      @click-left="onClickReturn"
-      @click-right="onClickRight"
-    />
-  </div>
+  <van-nav-bar
+    :title="title"
+    :left-arrow="left_arrow"
+    :right-text="right_text"
+    fixed
+    border
+    :z-index="2"
+    @click-left="onClickReturn"
+    @click-right="onClickRight"
+  />
 </template>
 
 <script>
@@ -67,7 +65,6 @@ export default {
   }
   .van-nav-bar__title {
     font-size: 36px;
-    font-weight: 300;
     color: #000000;
   }
 }
