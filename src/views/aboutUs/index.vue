@@ -1,7 +1,8 @@
 <template>
   <div class="about_us">
     <return-btn @onClickReturn="onClickReturn" />
-    <div class="weaving_bear">
+    <div v-html="details" />
+    <!-- <div class="weaving_bear">
       <p>织布熊</p>
       <div>
         公司介绍公司介绍公司介绍公司介绍公司介绍公司介绍公司介绍公司介绍公司介绍公司介绍公司介绍公司介绍公司介绍公司介绍公司介绍公司介绍公司介绍公司介绍公司介绍公司介绍公司介绍公司介绍公司介绍公司介绍公司介绍公司介绍公司介绍公司介绍公司介绍公司介绍公司介绍公司介绍
@@ -14,17 +15,26 @@
       <div>
         信息介绍信息介绍信息介绍信息介绍信息介绍信息介绍信息介绍信息介绍信息介绍信息介绍信息介绍信息介绍信息介绍信息介绍信息介绍信息介绍信息介绍信息介绍信息介绍信息介绍信息介绍信息介绍信息介绍信息介绍信息介绍信息介绍信息介绍信息介绍信息介绍信息介绍信息介绍信息介绍信息介绍信息介绍信息介绍信息介绍信息介绍信息介绍信息介绍信息介绍信息介绍信息介绍信息介绍信息介绍信息介绍信息介绍信息介绍信息介绍信息介绍信息介绍信息介绍信息介绍信息介绍信息介绍信息介绍信息介绍信息介绍信息介绍信息介绍信息介绍信息介绍信息介绍信息介绍信息介绍信息介绍信息介绍信息介绍信息介绍信息介绍信息介绍信息介绍信息介绍信息介绍信息介绍信息介绍信息介绍信息介绍信息介绍
       </div>
-    </div>
+    </div> -->
   </div>
 </template>
 
 <script>
 import { ReturnBtn } from "components/index";
+import { AboutUs } from "network/profile";
 export default {
+  data() {
+    return {
+      details: ""
+    };
+  },
   methods: {
     onClickReturn() {
       this.$router.replace("/profile");
     }
+  },
+  created() {
+    AboutUs().then(res => (this.details = res.info));
   },
   components: {
     ReturnBtn
@@ -32,9 +42,13 @@ export default {
 };
 </script>
 
-<style lang="less" scoped>
+<style lang="less">
 .about_us {
   padding: 0 30px;
+  img {
+    max-width: 100%;
+    height: auto;
+  }
   .weaving_bear,
   .platform {
     padding-top: 60px;

@@ -1,32 +1,28 @@
 <template>
   <div class="share">
     <return-btn @onClickReturn="onClickReturn" />
-    <div class="share_group">
-      <h6>江西工业工程职业技术学院</h6>
-      <img class="share_drawing" src="~assets/img/share/user_img.png" />
+    <div class="share_group" id="imageWrapper">
+      <h6>{{ share_info.title }}</h6>
+      <img
+        class="share_drawing"
+        :src="$store.state.interface_domain + share_info.thumb"
+      />
       <div class="works_group">
-        <div>
-          <img src="~/assets/img/customize/phone_case.png" />
-        </div>
-        <div>
-          <img src="~/assets/img/customize/cup.png" />
-        </div>
-        <div>
-          <img src="~/assets/img/customize/pillow.png" />
-        </div>
-        <div>
-          <img src="~/assets/img/customize/satchel.png" />
+        <div v-for="item in share_info.goods" :key="item.id">
+          <img :src="$store.state.interface_domain + item.thumb" />
         </div>
       </div>
       <div class="maker_info">
         <div>
-          <h6>学生名称</h6>
+          <h6>{{ share_info.name }}</h6>
           <div>
-            <p>我正在参与***公益</p>
-            <p>希望各位哥哥姐姐多多支持我哦！</p>
+            <p v-if="share_info.pinfo && share_info.pinfo.length">
+              我正在参与{{ share_info.pinfo.name }}公益
+            </p>
+            <p>{{ share_info.descri }}</p>
           </div>
         </div>
-        <img src="~/assets/img/customize/pillow.png" />
+        <img :src="share_info.qrcode" />
       </div>
     </div>
     <van-button
@@ -37,19 +33,67 @@
       @click="onShareNow"
       round
     />
+    <van-overlay :show="show_certificate" @click="show_certificate = false">
+      <img :src="share_img" />
+      <div>长按保存图片并分享</div>
+      <van-icon
+        class="certificate_box_close"
+        name="close"
+        color="#ffffff"
+        @click="show_certificate = false"
+      />
+    </van-overlay>
   </div>
 </template>
 
 <script>
+import html2canvas from "html2canvas";
+import { compress } from "common/utils";
 import { ReturnBtn } from "components/index";
+import { ImagesUpload } from "network/home";
+import { ShareInfo } from "network/share";
 export default {
+  data() {
+    return {
+      share_info: {},
+      show_certificate: false,
+      share_img: ""
+    };
+  },
   methods: {
     onClickReturn() {
       this.$router.push("/shareList");
     },
     onShareNow() {
-      this.$router.push("/shareGenerate");
+      window.pageYOffset = 0;
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+      html2canvas(document.getElementById("imageWrapper"), {
+        useCORS: true,
+        allowTaint: true,
+        taintTest: false,
+        backgroundColor: "rgba(0,0,0,0)",
+        logging: false
+      }).then(canvas => {
+        let dataURL = canvas.toDataURL("image/png");
+        this._ImagesUpload(dataURL);
+      });
+    },
+    // 网络请求
+    _ShareInfo() {
+      ShareInfo(this.$route.query.id).then(res => (this.share_info = res.info));
+    },
+    _ImagesUpload(dataURL) {
+      compress(dataURL, 1.5, base64 => {
+        ImagesUpload({ file: base64, type: "share" }).then(res => {
+          this.share_img = res.file_url;
+          this.show_certificate = !this.show_certificate;
+        });
+      });
     }
+  },
+  created() {
+    this._ShareInfo();
   },
   mounted() {
     if (window.history && window.history.pushState) {
@@ -111,12 +155,10 @@ export default {
       justify-content: space-between;
       margin-top: 68px;
       div {
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
         font-size: 24px;
         line-height: 32px;
         h6 {
+          margin-bottom: 50px;
           font-size: 30px;
           font-weight: 700;
         }
@@ -124,7 +166,6 @@ export default {
       img {
         width: 162px;
         height: 162px;
-        background-color: #0d0d0d;
       }
     }
   }
@@ -135,6 +176,25 @@ export default {
     margin: 0 auto;
     font-size: 36px;
     font-weight: 700;
+  }
+  .van-overlay {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0, 0, 0, 0.3);
+    img {
+      width: auto;
+      height: 84%;
+    }
+    div {
+      margin: 30px auto;
+      font-size: 24px;
+      color: #ffffff;
+    }
+    .certificate_box_close {
+      font-size: 60px;
+    }
   }
 }
 </style>

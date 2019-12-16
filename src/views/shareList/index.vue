@@ -3,10 +3,7 @@
     <return-btn @onClickReturn="onClickReturn" />
     <good-item v-for="item in customize_list" :key="item.id" :good="item">
       <template slot="good_img">
-        <img v-if="item.id == 1" src="~/assets/img/customize/phone_case.png" />
-        <img v-else-if="item.id == 2" src="~/assets/img/customize/cup.png" />
-        <img v-else-if="item.id == 3" src="~/assets/img/customize/pillow.png" />
-        <img v-else src="~/assets/img/customize/satchel.png" />
+        <img :src="item.thumb" />
       </template>
       <template slot="good_fun">
         <div class="good_fun_group">
@@ -14,17 +11,16 @@
             type="primary"
             text="去编辑"
             color="#ff7301"
-            @click="onEdit(item.id)"
+            @click="onEdit(item)"
             plain
             round
           />
           <van-button
             type="primary"
-            color="#ff7024"
+            :color="item.ischoose ? '#d2d2d2' : '#ff7024'"
             class="good_choose"
             :text="item.ischoose ? '已选择' : '选择'"
-            :disabled="item.ischoose"
-            @click="onChoose"
+            @click="onChoose(item.id)"
             round
           />
         </div>
@@ -43,31 +39,14 @@
 
 <script>
 import { ReturnBtn, GoodItem } from "components/index";
+import { CustomGoodsList } from "network/customize";
+import { SubmitShareGoods } from "network/share";
 export default {
   data() {
     return {
-      customize_list: [
-        {
-          id: 1,
-          title: "手机壳",
-          ischoose: true
-        },
-        {
-          id: 2,
-          title: "情侣变色杯",
-          ischoose: false
-        },
-        {
-          id: 3,
-          title: "抱枕",
-          ischoose: false
-        },
-        {
-          id: 4,
-          title: "单肩挎包",
-          ischoose: false
-        }
-      ]
+      customize_list: [],
+      isrequest: true,
+      page: 1
     };
   },
   computed: {},
@@ -76,31 +55,91 @@ export default {
       return this.$router.push("/iShare");
     },
     // 选择商品编辑
-    onEdit(id) {
-      switch (id) {
-        case 1:
-          this.$router.push("/edit/phone");
-          break;
-        case 2:
-          this.$router.push("/edit/cup");
-          break;
-        case 3:
-          this.$router.push("/edit/pillow");
-          break;
-        case 4:
-          this.$router.push("/edit/satchel");
-          break;
-        default:
-          this.$router.push("/edit/phone");
-          break;
+    onEdit(obj) {
+      const { id, thumb, isextend, isdoble, title } = obj;
+      if (isextend)
+        this.$router.push({ path: "/model", query: { id, type: "share" } });
+      else {
+        let customize_type;
+        if (title.includes("壳")) customize_type = 1;
+        else if (title.includes("枕")) customize_type = 2;
+        else if (title.includes("包")) customize_type = 3;
+        else if (title.includes("杯")) customize_type = 4;
+        else if (title.includes("盒")) customize_type = 5;
+        this.$store.commit("customInfo", {
+          id,
+          isextend,
+          isdoble,
+          customize_type,
+          title,
+          thumb: thumb
+        });
+        this.$router.push("/edit");
       }
     },
     // 选择商品分享
-    onChoose() {},
+    onChoose(id) {
+      this.customize_list.map(item => {
+        if (item.id == id) item.ischoose = !item.ischoose;
+      });
+    },
     // 立即分享
     onShare() {
-      return this.$router.push("/share");
+      let { sid, share_goods } = this.$store.state;
+      let data = [];
+      this.customize_list.map(item_list => {
+        share_goods.map(item => {
+          if (item_list.ischoose && item_list.id == item.gid) {
+            data.push({ ...item });
+          }
+        });
+      });
+      if (data.length) this._SubmitShareGoods(sid, data);
+      else this.$toast("至少选择一样分享作品");
+    },
+    // 网络请求
+    _CustomGoodsList() {
+      if (this.isrequest) {
+        CustomGoodsList(this.page++).then(res => {
+          if (res.list.length == 10) this.isrequest = true;
+          else this.isrequest = false;
+          res.list.map(item => {
+            this.customize_list.push({
+              ...item,
+              ischoose: false,
+              thumb: this.$store.state.interface_domain + item.thumb
+            });
+          });
+          if (this.$store.state.share_goods.length) {
+            this.customize_list.map((item_list, index) => {
+              this.$store.state.share_goods.map(item => {
+                if (item_list.id == item.gid)
+                  this.customize_list[index].thumb =
+                    this.$store.state.interface_domain + item.thumb;
+              });
+            });
+          }
+        });
+      }
+    },
+    _SubmitShareGoods(id, data) {
+      SubmitShareGoods(id, JSON.stringify(data)).then(() =>
+        this.$router.push({ path: "/share", query: { id } })
+      );
+    },
+    // 可滚动容器的高度
+    onScroll() {
+      let innerHeight = document.querySelector("#app").clientHeight;
+      let outerHeight = document.documentElement.clientHeight;
+      let scrollTop = document.documentElement.scrollTop;
+      if (innerHeight - outerHeight - 50 < scrollTop) {
+        this._CustomGoodsList();
+      }
     }
+  },
+  created() {
+    this._CustomGoodsList();
+    window.addEventListener("scroll", this.onScroll);
   },
   mounted() {
     if (window.history && window.history.pushState) {
@@ -143,11 +182,6 @@ export default {
     }
     .good_choose {
       width: 150px;
-      &.van-button--disabled {
-        opacity: 1;
-        background-color: #d2d2d2 !important;
-        border: solid 1px #d2d2d2 !important;
-      }
     }
   }
   .share_now {

@@ -2,15 +2,17 @@
   <div class="vip_service_info">
     <return-btn @onClickReturn="onClickReturn" />
     <div class="vip_service_info_top">
-      <img class="vip_user_img" src="~assets/img/home/artist_three.png" />
-      <div class="vip_user_name">宅在家里的旅行家</div>
-      <div class="vip_user_mark">VIP用户</div>
-      <div class="vip_expire_date">到期时间：2020-11-04</div>
+      <img class="vip_user_img" :src="info.avatar" />
+      <div class="vip_user_name">{{ info.nickname }}</div>
+      <div class="vip_user_mark">{{ info.isvip ? "VIP用户" : "普通用户" }}</div>
+      <div class="vip_expire_date" v-if="info.vipendtime">
+        到期时间：{{ info.vipendtime }}
+      </div>
     </div>
     <van-cell-group>
-      <van-cell title="后台地址" value="www.dsafda.com" />
-      <van-cell title="账号" value="madin" />
-      <van-cell title="密码" value="123456" />
+      <van-cell title="后台地址" :value="info.adminurl" />
+      <van-cell title="账号" :value="info.adminaccount" />
+      <van-cell title="密码" :value="info.admintoken" />
     </van-cell-group>
     <div class="vip_service_title">*该账号密码支持以下权益：</div>
     <ul>
@@ -24,17 +26,38 @@
 
 <script>
 import { ReturnBtn } from "components/index";
+import { GetMyVipInfo } from "network/profile";
 export default {
+  data() {
+    return {
+      info: {},
+      clearget_timer: null
+    };
+  },
   methods: {
     onClickReturn() {
       this.$router.replace("/profile");
     }
+  },
+  created() {
+    GetMyVipInfo().then(res => {
+      if (res.info.isvip) this.info = res.info;
+      else this.$toast("您不是VIP用户");
+      this.clearget_timer = setTimeout(
+        () => this.$router.replace("/vipService"),
+        1000
+      );
+    });
   },
   mounted() {
     if (window.history && window.history.pushState) {
       history.pushState(null, null, document.URL);
       window.addEventListener("popstate", this.onClickReturn, false); //false阻止默认事件
     }
+  },
+  beforeDestroy() {
+    clearInterval(this.clearget_timer);
+    this.clearget_timer = null;
   },
   destroyed() {
     window.removeEventListener("popstate", this.onClickReturn, false); //false阻止默认事件

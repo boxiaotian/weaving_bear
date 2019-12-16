@@ -14,29 +14,29 @@
       <div class="menu_group" ref="goodMenu">
         <div
           :class="['menu', menuActive == index ? 'menu_active' : '']"
-          v-for="(item, index) in model_list"
+          v-for="(item, index) in model_list_data"
           :key="item.id"
           @click="onMenuClick(index)"
         >
-          {{ item.model }}
+          {{ item.name }}
         </div>
       </div>
       <div class="submenu_group" @scroll="listScroll($event)" ref="goodList">
-        <div v-for="item in model_list" :key="item.id" ref="submenu">
+        <div v-for="item in model_list_data" :key="item.id" ref="submenu">
           <div
             class="model_series"
             v-for="serie in item.series_list"
             :key="serie.id"
           >
-            <div>{{ serie.series }}</div>
+            <div>{{ serie.name }}</div>
             <ul class="device_group">
-              <router-link
-                to="/customize/phone"
-                tag="li"
-                v-for="device_item in serie.device_list"
+              <li
+                v-for="device_item in serie.child"
                 :key="device_item.id"
-                >{{ device_item.device }}</router-link
+                @click="onCustomize(device_item)"
               >
+                {{ device_item.name }}
+              </li>
             </ul>
           </div>
         </div>
@@ -47,223 +47,29 @@
 
 <script>
 import { ReturnBtn } from "components/index";
+import { CustomGoodsMobileClass } from "network/customize";
 export default {
   data() {
     return {
       search_value: "",
       scroll_height: 0,
-      model_list: [
-        {
-          id: 1,
-          model: "华为",
-          series_list: [
-            {
-              id: 1,
-              series: "HUAWEI  Mate 系列",
-              device_list: [
-                {
-                  id: 1,
-                  device: "华为mate20pro"
-                },
-                {
-                  id: 2,
-                  device: "华为as"
-                },
-                {
-                  id: 3,
-                  device: "华为as"
-                },
-                {
-                  id: 4,
-                  device: "华为mate20pro"
-                }
-              ]
-            },
-            {
-              id: 2,
-              series: "HUAWEI  Mate 系列一",
-              device_list: [
-                {
-                  id: 1,
-                  device: "华为mate20pro"
-                }
-              ]
-            }
-          ]
-        },
-        {
-          id: 2,
-          model: "OPPO",
-          series_list: [
-            {
-              id: 1,
-              series: "OPPO  Mate 系列",
-              device_list: [
-                {
-                  id: 1,
-                  device: "OPPO mate20pro"
-                }
-              ]
-            }
-          ]
-        },
-        {
-          id: 3,
-          model: "vivo",
-          series_list: [
-            {
-              id: 1,
-              series: "vivo  Mate 系列",
-              device_list: [
-                {
-                  id: 1,
-                  device: "vivo mate20pro"
-                }
-              ]
-            }
-          ]
-        },
-        {
-          id: 4,
-          model: "iPhone",
-          series_list: [
-            {
-              id: 1,
-              series: "iPhone  Mate 系列",
-              device_list: [
-                {
-                  id: 1,
-                  device: "iPhone mate20pro"
-                }
-              ]
-            }
-          ]
-        },
-        {
-          id: 5,
-          model: "小米",
-          series_list: [
-            {
-              id: 1,
-              series: "MI  Mate 系列",
-              device_list: [
-                {
-                  id: 1,
-                  device: "MI mate20pro"
-                }
-              ]
-            }
-          ]
-        },
-        {
-          id: 6,
-          model: "魅族",
-          series_list: [
-            {
-              id: 1,
-              series: "魅族  Mate 系列",
-              device_list: [
-                {
-                  id: 1,
-                  device: "魅族 mate20pro"
-                }
-              ]
-            }
-          ]
-        },
-        {
-          id: 7,
-          model: "三星",
-          series_list: [
-            {
-              id: 1,
-              series: "三星  Mate 系列",
-              device_list: [
-                {
-                  id: 1,
-                  device: "三星 mate20pro"
-                }
-              ]
-            }
-          ]
-        },
-        {
-          id: 8,
-          model: "一加",
-          series_list: [
-            {
-              id: 1,
-              series: "一加  Mate 系列",
-              device_list: [
-                {
-                  id: 1,
-                  device: "一加 mate20pro"
-                }
-              ]
-            }
-          ]
-        },
-        {
-          id: 9,
-          model: "一加",
-          series_list: [
-            {
-              id: 1,
-              series: "一加  Mate 系列",
-              device_list: [
-                {
-                  id: 1,
-                  device: "一加 mate20pro"
-                }
-              ]
-            }
-          ]
-        },
-        {
-          id: 10,
-          model: "一加",
-          series_list: [
-            {
-              id: 1,
-              series: "一加  Mate 系列",
-              device_list: [
-                {
-                  id: 1,
-                  device: "一加 mate20pro"
-                }
-              ]
-            }
-          ]
-        },
-        {
-          id: 11,
-          model: "一加",
-          series_list: [
-            {
-              id: 1,
-              series: "一加  Mate 系列",
-              device_list: [
-                {
-                  id: 1,
-                  device: "一加 mate20pro"
-                }
-              ]
-            }
-          ]
-        }
-      ],
+      model_list_data: [],
       heightList: [0],
-      menuActive: 0
+      menuActive: 0,
+      clearget_timer: null // 清除定时器
     };
   },
   methods: {
     onClickReturn() {
-      return this.$router.push("/customizeList");
+      if (this.$route.query.type == "share") this.$router.push("/shareList");
+      else this.$router.push("/customizeList");
     },
+    // 点击菜单
     onMenuClick(index) {
       this.$refs.goodList.scrollTop = this.heightList[index] + 30;
       this.menuActive = index;
     },
+    // 滚动显示对应菜单
     listScroll($event) {
       let scrollTop = $event.target.scrollTop;
       this.heightList.map((item, index) => {
@@ -272,15 +78,68 @@ export default {
         }
       });
     },
+    // 获取每个子菜单高度
     getHeight() {
-      let height = 0;
-      this.$refs.submenu.forEach(item => {
-        height += item.clientHeight;
-        this.heightList.push(height);
+      this.clearget_timer = setTimeout(() => {
+        let height = 0;
+        this.$refs.submenu &&
+          this.$refs.submenu.forEach(item => {
+            height += item.clientHeight;
+            this.heightList.push(height);
+          });
+      }, 1000);
+    },
+    // 制作手机壳
+    onCustomize(obj) {
+      const { name, thumb, camera_thumb, fingerprint_thumb } = obj;
+      this.$store.commit("customInfo", {
+        ...obj,
+        gid: this.$route.query.id,
+        isextend: 1,
+        isdoble: 0,
+        customize_type: 1,
+        title: name,
+        thumb: this.$store.state.interface_domain + thumb,
+        camera_thumb: this.$store.state.interface_domain + camera_thumb,
+        fingerprint_thumb:
+          this.$store.state.interface_domain + fingerprint_thumb
       });
+      if (this.$route.query.type == "share") this.$router.push("/edit");
+      else this.$router.push("/customize");
+    },
+    // 网络请求
+    _CustomGoodsMobileClass() {
+      // 请求一级分类数据
+      CustomGoodsMobileClass()
+        .then(res => {
+          // 一级分类循环并push
+          res.list.map(model => {
+            this.model_list_data.push({
+              id: model.id,
+              name: model.name,
+              series_list: []
+            });
+          });
+        })
+        .then(() => {
+          // 一级分类循环
+          this.model_list_data.map(model => {
+            let model_item = model;
+            CustomGoodsMobileClass(model_item.id).then(series_res => {
+              // 循环子类
+              series_res.list.map(series => {
+                let { pid, id, name, child } = series;
+                // 子类与父类id对比
+                if (series.pid == model.id)
+                  model_item.series_list.push({ pid, id, name, child });
+              });
+            });
+          });
+        });
     }
   },
   created() {
+    this._CustomGoodsMobileClass();
     this.$nextTick(() => {
       this.getHeight();
     });
@@ -295,6 +154,10 @@ export default {
       : window.innerHeight;
     const search_height = this.$refs.search.offsetHeight;
     this.scroll_height = (windowHeight - search_height) / window.rem;
+  },
+  beforeDestroy() {
+    clearInterval(this.clearget_timer);
+    this.clearget_timer = null;
   },
   destroyed() {
     window.removeEventListener("popstate", this.onClickReturn, false); //false阻止默认事件
@@ -376,7 +239,7 @@ export default {
     .submenu_group {
       flex: 1;
       height: 100%;
-      padding: 0 30px;
+      padding: 0 30px 10px;
       border-top: solid 2px #eeeeee;
       overflow-x: hidden;
       scroll-behavior: smooth;

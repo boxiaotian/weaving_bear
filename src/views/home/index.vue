@@ -1,6 +1,6 @@
 <template>
   <div class="home">
-    <home-swiper />
+    <home-swiper :swiper_list="swiper_list" />
     <div class="my_special">
       <router-link to="/customizeList" tag="div">
         <img src="~assets/img/home/i_customize.png" />
@@ -9,7 +9,7 @@
         <img src="~assets/img/home/i_share.png" />
       </router-link>
     </div>
-    <div class="artist">
+    <div v-if="artist_list.length" class="artist">
       <div class="artist_top">
         <img src="~assets/img/home/artist.png" />
         <span>公益艺术家</span>
@@ -18,12 +18,12 @@
       <div class="artist_group">
         <artist-item
           v-for="item in artist_list"
-          :key="item"
-          :artist="{ item }"
+          :key="item.id"
+          :artist="{ ...item }"
         />
       </div>
     </div>
-    <div class="public_welfare">
+    <div v-if="public_welfare_list.length" class="public_welfare">
       <div class="public_welfare_top">
         <img src="~assets/img/home/public_welfare_pool.png" />
         <span>公益池</span>
@@ -31,22 +31,22 @@
       </div>
       <div class="public_welfare_group">
         <router-link
-          to="/foundation"
           tag="div"
           class="public_welfare_item"
-          v-for="(item, index) in public_welfare_list"
-          :key="index"
+          v-for="item in public_welfare_list"
+          :to="{ path: '/foundation', query: { pid: item.id } }"
+          :key="item.id"
         >
           <div class="public_welfare_name">
-            <span>红十字基金会</span>
+            <span>{{ item.name }}</span>
           </div>
           <div class="public_welfare_amount_stand_by">
             <div>
-              <p class="amount_number">3520.00</p>
+              <p class="amount_number">{{ item.price }}</p>
               <p>金额（元）</p>
             </div>
             <div>
-              <p class="stand_by_number">2563</p>
+              <p class="stand_by_number">{{ item.num }}</p>
               <p>支持人数</p>
             </div>
           </div>
@@ -60,31 +60,31 @@
 
 <script>
 import { ArtistItem, MainTabBar } from "components/index";
+import { Index } from "network/home";
 import HomeSwiper from "./swiper";
 export default {
   data() {
     return {
-      artist_list: [1, 2, 3, 4],
-      public_welfare_list: [
-        {
-          name: "红十字基金会",
-          amount: "3520.00",
-          number: 2563
-        },
-        {
-          name: "留守儿童基金会",
-          amount: "6522.00",
-          number: 3651
-        },
-        {
-          name: "关爱老人基金会",
-          amount: "4535.52",
-          number: 2945
-        }
-      ]
+      swiper_list: [], // 轮播图
+      artist_list: [], // 艺术家
+      public_welfare_list: [] // 公益池
     };
   },
-  methods: {},
+  methods: {
+    // 网络请求
+    _Index() {
+      Index().then(res => {
+        const info = res.info;
+        document.title = info.title;
+        this.swiper_list = info.banner;
+        this.artist_list = info.artist;
+        this.public_welfare_list = info.public;
+      });
+    }
+  },
+  created() {
+    this._Index();
+  },
   components: {
     HomeSwiper,
     ArtistItem,

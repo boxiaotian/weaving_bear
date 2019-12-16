@@ -9,6 +9,7 @@
           v-model="ambassador_name"
           :border="false"
           :disabled="isedit"
+          autofocus
         >
           <img
             slot="right-icon"
@@ -18,12 +19,19 @@
         </van-field>
       </div>
     </div>
-    <van-button type="primary" text="提交" color="#ff7301" round />
+    <van-button
+      type="primary"
+      text="提交"
+      color="#ff7301"
+      @click="onSubmit"
+      round
+    />
   </div>
 </template>
 
 <script>
 import { ReturnBtn } from "components/index";
+import { ApplyRecommend } from "network/profile";
 export default {
   data() {
     return {
@@ -36,8 +44,30 @@ export default {
       this.$router.replace("/profile");
     },
     onEdit() {
-      this.isedit = !this.isedit;
+      this.isedit = false;
+    },
+    onSubmit() {
+      if (this.ambassador_name) this._ApplyRecommend();
+      else this.$toast("请输入您的大使名称");
+    },
+    // 网络请求
+    _ApplyRecommend() {
+      ApplyRecommend(this.ambassador_name).then(() => {
+        if (this.$store.state.promoter_name.isrecommend)
+          this.$toast("修改成功");
+        else this.$toast("申请成功");
+        this.$store.commit("promoterName", {
+          isrecommend: 1,
+          name: this.ambassador_name
+        });
+      });
     }
+  },
+  created() {
+    if (this.$store.state.promoter_name.isrecommend) {
+      this.ambassador_name = this.$store.state.promoter_name.name;
+      this.isedit = true;
+    } else this.isedit = false;
   },
   components: {
     ReturnBtn

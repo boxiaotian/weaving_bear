@@ -3,77 +3,64 @@
     <return-btn @onClickReturn="onClickReturn" />
     <div class="receipt_info">
       <img class="address" src="@/assets/img/icon/address.png" />
-      <!-- <span>请添加收货地址</span> -->
-      <div>
+      <div v-if="order_info.address && order_info.address.length">
         <h6 class="receipt_info_name">张三</h6>
         <p class="receipt_info_address">
           收货地址收货地址收货地址收货地址收货地址收货地址收货地址收货地址收货地址收货地址收货地址
         </p>
       </div>
+      <span v-else>请添加收货地址</span>
       <img class="arrow_r" src="@/assets/img/icon/arrow_r.png" />
     </div>
     <div class="order_item_group">
       <div class="order_item">
-        <div class="order_number">订单号：YZ5610345</div>
+        <div class="order_number">
+          <img src="~assets/img/icon/school.png" />
+          <span>{{ order_info.name }}</span>
+        </div>
         <div class="order_item_info">
           <div class="order_item_info_left">
             <div class="order_item_img_group">
-              <img src="~assets/img/customize/phone_case.png" />
+              <img :src="$store.state.interface_domain + order_info.thumb" />
             </div>
             <div style="max-width:67%">
-              <div class="order_item_title">定制手机壳定制手机壳定制手机壳</div>
-              <div class="order_item_present">
-                高清彩印 来图定制 高清彩印 来图定制 高清彩印 来图定制
+              <div class="order_item_title">{{ order_info.title }}</div>
+              <div class="order_item_present">{{ order_info.descri }}</div>
+              <div class="order_item_norm">
+                规格：{{ order_info.specitemname }}
               </div>
-              <div class="order_item_norm">规格：钢化玻璃</div>
             </div>
           </div>
           <div class="order_item_info_right">
-            <div>￥2800.88</div>
-            <div style="color:#999999">x1</div>
+            <div>￥{{ order_info.orderprice }}</div>
+            <div style="color:#999999">x{{ order_info.ordernum }}</div>
           </div>
         </div>
         <div class="order_charitable">
-          <span>公益宝贝</span><span>为参与公益项目</span>
+          <span>公益宝贝</span>
+          <span>{{
+            order_info.pid
+              ? `成交后平台将以您的名义捐赠${order_info.pprice}给${order_info.pname}`
+              : "未参与公益项目"
+          }}</span>
         </div>
         <div class="order_quantity_subtotal">
-          <span>共1件</span>
-          小计：<span>￥28.88</span>
-        </div>
-      </div>
-      <div class="order_item">
-        <div class="order_number">订单号：YZ5610345</div>
-        <div class="order_item_info">
-          <div class="order_item_info_left">
-            <div class="order_item_img_group">
-              <img src="~assets/img/customize/phone_case.png" />
-            </div>
-            <div style="max-width:67%">
-              <div class="order_item_title">定制手机壳定制手机壳定制手机壳</div>
-              <div class="order_item_present">
-                高清彩印 来图定制 高清彩印 来图定制 高清彩印 来图定制
-              </div>
-              <div class="order_item_norm">规格：钢化玻璃</div>
-            </div>
-          </div>
-          <div class="order_item_info_right">
-            <div>￥2800.88</div>
-            <div style="color:#999999">x1</div>
-          </div>
-        </div>
-        <div class="order_charitable">
-          <span>公益宝贝</span><span>为参与公益项目</span>
-        </div>
-        <div class="order_quantity_subtotal">
-          <span>共1件</span>
-          小计：<span>￥28.88</span>
+          <span>共{{ order_info.ordernum }}件</span>
+          小计：<span>￥{{ order_info.orderprice }}</span>
         </div>
       </div>
     </div>
     <div class="submit_order_footer">
-      <div style="color:#999999; margin-right:13px;">共1件</div>
+      <div style="color:#999999; margin-right:13px;">
+        共{{ order_info.num }}件
+      </div>
       <div>合计：</div>
-      <div class="submit_order_total">¥<span>28.88</span></div>
+      <div class="submit_order_total">
+        ¥<span
+          >{{ parseFloat(order_info.orderprice) + freight }}
+          <i>含运费:{{ freight }}</i></span
+        >
+      </div>
       <div class="submit_order_btn" @click="onSubmitOrder">提交订单</div>
     </div>
   </div>
@@ -81,14 +68,93 @@
 
 <script>
 import { ReturnBtn } from "components/index";
+import { ArtistGoodsOver, ArtistAddOrder } from "network/artist";
+import { CustomGoodsOver, CustomAddOrder } from "network/customize";
+import { GoodsOver, AddOrder } from "network/share";
 export default {
+  data() {
+    return {
+      order_info: {},
+      freight: ""
+    };
+  },
   methods: {
     onClickReturn() {
-      this.$router.replace("/productDetails");
+      this.$router.go(-1);
     },
     onSubmitOrder() {
-      this.$router.push("/paySuccess");
+      if (this.$route.query.type == "share") {
+        let params = {
+          ...JSON.parse(this.$route.query.data),
+          addressid: 1,
+          freight: this.freight,
+          orderprice: parseFloat(this.order_info.orderprice) + this.freight
+        };
+        console.log(params);
+      } else if (this.$route.query.type == "customize") {
+        let params = {
+          id: this.$route.query.id,
+          num: this.$route.query.num,
+          addressid: 1,
+          freight: this.freight,
+          orderprice: parseFloat(this.order_info.orderprice) + this.freight
+        };
+        console.log(params);
+      } else {
+        let params = {
+          ...JSON.parse(this.$route.query.data),
+          addressid: 1,
+          freight: this.freight,
+          orderprice: parseFloat(this.order_info.orderprice) + this.freight
+        };
+        console.log(params);
+      }
+
+      // this.$router.push("/paySuccess");
+    },
+    // 网络请求
+    // 定制的请求
+    _CustomGoodsOver() {
+      let { id, num } = this.$route.query;
+      CustomGoodsOver(id, num).then(res => {
+        this.order_info = res.info;
+        this.freight = res.info.freight ? res.info.freight : "0.00";
+      });
+    },
+    _CustomAddOrder() {
+      CustomAddOrder().then(res => {
+        console.log(res);
+      });
+    },
+    // 分享的请求
+    _ShareGoodsOver() {
+      GoodsOver(JSON.parse(this.$route.query.data)).then(res => {
+        this.order_info = res.info;
+        this.freight = res.info.freight ? res.info.freight : "0.00";
+      });
+    },
+    _AddOrder() {
+      AddOrder().then(res => {
+        console.log(res);
+      });
+    },
+    // 艺术家的请求
+    _ArtistGoodsOver() {
+      ArtistGoodsOver(JSON.parse(this.$route.query.data)).then(res => {
+        this.order_info = res.info;
+        this.freight = res.info.freight ? res.info.freight : "0.00";
+      });
+    },
+    _ArtistAddOrder() {
+      ArtistAddOrder().then(res => {
+        console.log(res);
+      });
     }
+  },
+  created() {
+    if (this.$route.query.type == "share") this._ShareGoodsOver();
+    else if (this.$route.query.type == "customize") this._CustomGoodsOver();
+    else this._ArtistGoodsOver();
   },
   mounted() {
     if (window.history && window.history.pushState) {
@@ -165,6 +231,11 @@ export default {
       .order_number {
         font-size: 30px;
         line-height: 38px;
+        img {
+          width: 30px;
+          height: 30px;
+          margin-right: 20px;
+        }
       }
       .order_item_info {
         display: flex;
@@ -223,16 +294,19 @@ export default {
         }
       }
       .order_charitable {
+        display: flex;
+        flex-direction: row;
         span {
           color: #999999;
           &:nth-child(1) {
+            width: 115px;
             margin: 0 40px 0 24px;
             color: #333333;
           }
         }
       }
       .order_quantity_subtotal {
-        margin-top: 50px;
+        margin-top: 30px;
         text-align: right;
         span {
           color: #ff7301;
@@ -270,12 +344,16 @@ export default {
       color: #ff7301;
       span {
         font-size: 36px;
+        i {
+          color: #999999;
+          font-size: 20px;
+        }
       }
     }
     .submit_order_btn {
       width: 150px;
       height: 60px;
-      margin-left: 40px;
+      margin-left: 20px;
       background-color: #ff7301;
       color: #ffffff;
       border-radius: 30px;

@@ -2,80 +2,43 @@
   <div class="share_generate">
     <return-btn @onClickReturn="onClickReturn" />
     <div class="share_generate_group">
-      <h6>学生名称</h6>
+      <h6>{{ share_info.name }}</h6>
       <div>
-        <p>我正在参与***公益</p>
-        <p>希望各位哥哥姐姐多多支持我哦！</p>
+        <p v-if="share_info.pinfo && share_info.pinfo.length">
+          我正在参与{{ share_info.pinfo.name }}公益
+        </p>
+        <p>{{ share_info.descri }}</p>
       </div>
-      <img class="share_drawing" src="~assets/img/share/user_img.png" />
+      <img
+        class="share_drawing"
+        :src="$store.state.interface_domain + share_info.thumb"
+      />
       <h5>定制产品</h5>
-      <div class="customize_product">
+      <div
+        class="customize_product"
+        v-for="item in share_info.goods"
+        :key="item.id"
+      >
         <div>
-          <img src="~/assets/img/customize/phone_case_big.png" />
+          <img :src="$store.state.interface_domain + item.thumb" />
         </div>
         <van-button
           class="buy_now"
           type="primary"
           text="立即购买"
           color="#ff7301"
-          @click="onBuyNow"
-          round
-        />
-      </div>
-      <div class="customize_product">
-        <div>
-          <img src="~/assets/img/customize/cup_big.png" />
-        </div>
-        <van-button
-          class="buy_now"
-          type="primary"
-          text="立即购买"
-          color="#ff7301"
-          @click="onBuyNow"
-          round
-        />
-      </div>
-      <div class="customize_product">
-        <div>
-          <img src="~/assets/img/customize/pillow_big.png" />
-        </div>
-        <van-button
-          class="buy_now"
-          type="primary"
-          text="立即购买"
-          color="#ff7301"
-          @click="onBuyNow"
-          round
-        />
-      </div>
-      <div class="customize_product">
-        <div>
-          <img src="~/assets/img/customize/satchel_big.png" />
-        </div>
-        <van-button
-          class="buy_now"
-          type="primary"
-          text="立即购买"
-          color="#ff7301"
-          @click="onBuyNow"
+          @click="onBuyNow(item.id)"
           round
         />
       </div>
       <div class="charitable_school">
-        <h6>公益图文详情</h6>
-        <div>
-          公益图文详情公益图文详情公益图文详情公益图文详情公益图文
-          详情公益图文详情公益图文详情公益图文详情公益图文详情公益
-          图文详情公益图文详情公益图文详情公益图文详情公益图文详情
-          公益图文详情公益图文详情公益图文详情公益图文详情公益图文 详情
-        </div>
+        <h6 v-if="share_info.pinfo && share_info.pinfo.length">公益图文详情</h6>
+        <div
+          v-if="share_info.pinfo && share_info.pinfo.length"
+          v-html="share_info.pinfo.details"
+        />
         <h6>学校图文详情</h6>
-        <div>
-          学校图文详情学校图文详情学校图文详情学校图文详情学校图文
-          详情学校图文详情学校图文详情学校图文详情学校图文详情学校
-          图文详情学校图文详情学校图文详情学校图文详情学校图文详情
-          学校图文详情学校图文详情学校图文详情学校图文详情学校图文 详情
-        </div>
+        <div v-html="share_info.aboutus" />
       </div>
     </div>
   </div>
@@ -83,12 +46,30 @@
 
 <script>
 import { ReturnBtn } from "components/index";
+import { ShareInfo } from "network/share";
 export default {
+  data() {
+    return {
+      share_info: {}
+    };
+  },
   methods: {
     onClickReturn() {
-      return this.$router.push("/shareList");
+      this.$router.replace("/home");
     },
-    onBuyNow() {}
+    onBuyNow(id) {
+      let { uid, sid } = this.$route.query;
+      this.$router.replace({ path: "/shareDetails", query: { uid, sid, id } });
+    },
+    // 网络请求
+    _ShareInfo() {
+      ShareInfo(this.$route.query.sid).then(
+        res => (this.share_info = res.info)
+      );
+    }
+  },
+  created() {
+    this._ShareInfo();
   },
   mounted() {
     if (window.history && window.history.pushState) {
@@ -105,6 +86,21 @@ export default {
 };
 </script>
 
+<style lang="less">
+.share_generate {
+  .share_generate_group {
+    .charitable_school {
+      div {
+        margin-bottom: 90px;
+        img {
+          max-width: 100%;
+          max-height: auto;
+        }
+      }
+    }
+  }
+}
+</style>
 <style lang="less" scoped>
 .share_generate {
   padding: 0 30px;
@@ -146,11 +142,6 @@ export default {
         margin: auto;
         font-size: 36px;
         font-weight: 700;
-      }
-    }
-    .charitable_school {
-      div {
-        margin-bottom: 90px;
       }
     }
   }

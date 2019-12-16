@@ -1,7 +1,8 @@
 <template>
   <div class="help_center">
     <return-btn @onClickReturn="onClickReturn" />
-    <van-collapse v-model="activeNames" :accordion="true">
+    <div v-html="details" />
+    <!-- <van-collapse v-model="activeNames" :accordion="true">
       <van-collapse-item v-for="item in 6" :key="item" :name="item">
         <template slot="title">
           <span class="help_center_icon">Q1</span>
@@ -12,22 +13,27 @@
         问题解决方法问题解决方法问题解决方法问题解决方法问题解
         决方法问题解决方法问题解决方法</van-collapse-item
       >
-    </van-collapse>
+    </van-collapse> -->
   </div>
 </template>
 
 <script>
 import { ReturnBtn } from "components/index";
+import { HelpUs } from "network/profile";
 export default {
   data() {
     return {
-      activeNames: []
+      activeNames: [],
+      details: ""
     };
   },
   methods: {
     onClickReturn() {
       this.$router.replace("/profile");
     }
+  },
+  created() {
+    HelpUs().then(res => (this.details = res.info));
   },
   components: {
     ReturnBtn
@@ -37,7 +43,12 @@ export default {
 
 <style lang="less">
 .help_center {
-  padding-top: 30px;
+  // padding-top: 30px;
+  padding: 0 30px;
+  img {
+    max-width: 100%;
+    height: auto;
+  }
   .van-hairline--top-bottom {
     .van-collapse-item {
       .van-cell {

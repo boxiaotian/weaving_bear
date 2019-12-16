@@ -12,7 +12,7 @@
         <span>选择公益</span>（平台将以您的名义给所选公益项目捐赠）
       </div>
       <van-dropdown-menu active-color="#ff7301">
-        <van-dropdown-item v-model="value1" :options="option1" />
+        <van-dropdown-item v-model="public_value" :options="public_option" />
       </van-dropdown-menu>
     </div>
     <div class="i_share_form_group">
@@ -25,7 +25,13 @@
       </van-uploader>
     </div>
     <div class="i_share_form_description">
-      <van-field rows="1" autosize type="textarea" placeholder="请输入留言" />
+      <van-field
+        v-model="share_descri"
+        placeholder="请输入留言"
+        rows="1"
+        type="textarea"
+        autosize
+      />
     </div>
     <div class="i_share_next_step" @click="onNextStep">下一步</div>
   </div>
@@ -33,25 +39,17 @@
 
 <script>
 import { ReturnBtn } from "components/index";
+import { PublicPoolList } from "network/charityPool";
+import { ImagesUpload } from "network/home";
+import { SubmitInfo } from "network/share";
 export default {
   data() {
     return {
       share_name: "",
-      value1: 0,
-      option1: [
-        { text: "不选择", value: 0 },
-        { text: "全部商品", value: 1 },
-        { text: "新款商品", value: 2 },
-        { text: "活动商品", value: 3 },
-        { text: "活动商品", value: 3 },
-        { text: "活动商品", value: 3 },
-        { text: "活动商品", value: 3 },
-        { text: "活动商品", value: 3 },
-        { text: "活动商品", value: 3 },
-        { text: "活动商品", value: 3 },
-        { text: "活动商品", value: 3 }
-      ],
-      file_list: []
+      public_value: 0,
+      public_option: [{ text: "不选择", value: 0 }],
+      file_list: [],
+      share_descri: "希望各位哥哥姐姐多多支持我的作品"
     };
   },
   methods: {
@@ -62,8 +60,45 @@ export default {
       console.log(file);
     },
     onNextStep() {
-      this.$router.push("/shareList");
+      if (!this.share_name) this.$toast("请输入你的姓名");
+      else if (!this.file_list.length) this.$toast("请上传你的作品");
+      else if (!this.share_descri) this.$toast("请上传你的留言");
+      else this._ImagesUpload(this.file_list[0].content);
+    },
+    // 网络请求
+    // 公益列表
+    _PublicPoolList() {
+      PublicPoolList(1).then(res => {
+        res.list.map(item => {
+          this.public_option.push({
+            text: item.name,
+            value: item.id
+          });
+        });
+      });
+    },
+    // 上传图片
+    _ImagesUpload(dataURL) {
+      ImagesUpload({ file: dataURL, type: "share" }).then(res =>
+        this._SubmitInfo(res.file_path)
+      );
+    },
+    // 提交分享信息
+    _SubmitInfo(thumb) {
+      let params = {
+        name: this.share_name,
+        pid: this.public_value,
+        thumb: thumb,
+        descri: this.share_descri
+      };
+      SubmitInfo(params).then(res => {
+        this.$store.commit("shareInfoId", res.id);
+        this.$router.push({ path: "/shareList" });
+      });
     }
+  },
+  created() {
+    this._PublicPoolList();
   },
   mounted() {
     if (window.history && window.history.pushState) {
@@ -133,8 +168,17 @@ export default {
     .van-uploader {
       margin-top: 38px;
       .van-uploader__wrapper {
+        .van-uploader__input-wrapper {
+          img {
+            width: 120px;
+            height: 150px;
+          }
+        }
         .van-uploader__preview {
           .van-uploader__preview-image {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
             width: 120px;
             height: 150px;
             border-radius: 18px;

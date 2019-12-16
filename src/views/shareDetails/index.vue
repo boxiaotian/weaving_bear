@@ -16,15 +16,23 @@
       <div class="commodity_info_brief">
         {{ details.descri }}
       </div>
-      <div class="commodity_info_price">¥{{ details.price }}</div>
+      <div class="commodity_info_price">¥{{ selected_norm.price }}</div>
     </div>
     <div class="commodity_graphic">
       <div class="commodity_graphic_title">图文详情</div>
-      <div v-html="details.details"></div>
+      <div class="commodity_graphic_details" v-html="details.details"></div>
     </div>
     <van-goods-action safe-area-inset-bottom>
-      <van-goods-action-icon icon="chat-o" text="客服" @click="onClickIcon" />
-      <van-goods-action-icon icon="cart-o" text="购物车" @click="onClickIcon" />
+      <van-goods-action-icon
+        icon="chat-o"
+        text="客服"
+        @click="onClickIcon(1)"
+      />
+      <van-goods-action-icon
+        icon="cart-o"
+        text="购物车"
+        @click="onClickIcon(0)"
+      />
       <van-goods-action-button
         type="warning"
         text="加入购物车"
@@ -45,13 +53,13 @@
       safe-area-inset-bottom
     >
       <div class="commodity_info_name">
-        定制手机壳
+        {{ details.title }}
       </div>
       <div class="commodity_info_brief">
-        1.商品简介商品简介商品简介2.商品简介商品简介商品简介3.商品简介商品简介商品简介
+        {{ details.descri }}
       </div>
       <div class="commodity_overall_norm">
-        <div>
+        <!-- <div>
           <h6>机型</h6>
           <div class="commodity_norm_select" @click="onModelSelect">
             iPhone6/iPhone6s
@@ -69,34 +77,34 @@
               @cancel="show_model = !show_model"
             />
           </van-popup>
+        </div> -->
+        <!-- <div> -->
+        <h6>规格</h6>
+        <div class="commodity_norm_select" @click="onNormSelect">
+          {{ selected_norm.name }}
         </div>
-        <div>
-          <h6>规格</h6>
-          <div class="commodity_norm_select" @click="onNormSelect">
-            请选择规格
-          </div>
-          <van-popup
-            v-model="show_norm"
-            position="bottom"
-            round
-            safe-area-inset-bottom
-          >
-            <van-area
-              title="规格"
-              @confirm="onNormConfirm"
-              @cancel="show_norm = !show_norm"
-              :area-list="norm_list"
-              :columns-num="1"
-            />
-          </van-popup>
-        </div>
+        <van-popup
+          v-model="show_norm"
+          position="bottom"
+          round
+          safe-area-inset-bottom
+        >
+          <van-area
+            title="规格"
+            @confirm="onNormConfirm"
+            @cancel="show_norm = !show_norm"
+            :area-list="norm_list"
+            :columns-num="1"
+          />
+        </van-popup>
+        <!-- </div> -->
       </div>
       <div class="charitable_projects">
         <h6>
           选择公益项目支持 <span>（平台将以您的名义给所选公益项目捐赠）</span>
         </h6>
         <div class="commodity_charitable_select" @click="onCharitableSelect">
-          不选择
+          {{ selected_public.name }}
         </div>
         <van-popup
           v-model="show_charitable"
@@ -109,76 +117,91 @@
             @confirm="onCharitableConfirm"
             @cancel="show_charitable = !show_charitable"
             :area-list="charitable_list"
+            :columns-placeholder="[public_tips]"
             :columns-num="1"
           />
+          <div class="load_more" @click="onLoadMore">
+            <span v-if="isrequest">点击加载更多</span>
+            <span v-else>暂无更多～</span>
+          </div>
         </van-popup>
       </div>
-      <van-cell title="剩余库存" value="100" :border="false"> </van-cell>
+      <van-cell title="商品备注" :border="false">
+        <van-field
+          v-model="product_notes"
+          placeholder="如是手机壳请填写您的机型"
+        />
+      </van-cell>
       <van-cell title="选择数量" :border="false">
         <van-stepper slot="right-icon" v-model="number_value" integer />
       </van-cell>
       <van-cell title="价格" :border="false">
         <div slot="right-icon" class="commodity_info_price">
-          ￥{{ details.price }}
+          ￥{{ (selected_norm.price * number_value).toFixed(2) }}
         </div>
       </van-cell>
-      <div class="commodity_shopping" @click="oncartBuy">
-        {{ isbuy ? "立即购买" : "加入购物车" }}
-      </div>
+      <van-button
+        class="commodity_shopping"
+        type="primary"
+        text="立即购买"
+        color="#ff7301"
+        v-if="isbuy"
+        @click="onBuy"
+        round
+      />
+      <van-button
+        class="commodity_shopping"
+        type="primary"
+        text="加入购物车"
+        color="#ff7301"
+        @click="onCart"
+        v-else
+        round
+      />
     </van-popup>
   </div>
 </template>
 
 <script>
-import areaList from "common/area";
 import { ReturnBtn } from "components/index";
-import { ArtistGoodsDetail } from "network/artist";
+import { PublicPoolList } from "network/charityPool";
+import { ShareGoodsDetail, GoodsOver, AddCart } from "network/share";
 export default {
   data() {
     return {
       swipeHeight: 0, // 轮播图高度
-      details: {},
+      details: {}, // 商品详情
+      public_lool_list: [], // 公益列表
       swipe_list: [],
       show_popup: false, // 弹窗
       show_model: false, //机型弹窗
-      model_list: areaList, // 机型数据
       show_norm: false, // 规格弹窗
-      norm_list: {
-        province_list: {
-          110000: "北京市",
-          120000: "天津市"
-        }
-      }, // 规格数据
+      selected_norm: {}, // 选中的规格
+      norm_list: {}, // 规格数据
       show_charitable: false, // 公益弹窗
-      charitable_list: {
-        province_list: {
-          110000: "北京市",
-          120000: "天津市"
-        }
-      }, // 公益数据
+      selected_public: { id: 0, name: "不选择" }, //选中的公益
+      charitable_list: { province_list: {} }, // 公益数据
+      public_tips: "暂无公益支持", // 公益提示,
+      isrequest: true, // 是否请求公益
+      isload: false, // 是否显示加载
+      page: 1, // 公益分页
+      product_notes: "", // 商品备注
       number_value: 1, // 购买值
       isbuy: true
     };
   },
   methods: {
     onClickReturn() {
-      return this.$router.back();
+      this.$router.go(-1);
     },
-    onClickIcon() {
-      console.log("点击图标");
+    onClickIcon(type) {
+      if (type) this.$toast("联系客服");
+      else this.$router.push("/shoppingCart");
     },
     // 显示购买弹出层
     onShowPopup(type) {
       this.show_popup = !this.show_popup;
       this.isbuy = type;
-    },
-    // 选择机型
-    onModelSelect() {
-      this.show_model = !this.show_model;
-    },
-    onModelConfirm(obj) {
-      this.show_model = !this.show_model;
-      console.log(obj);
     },
     // 选择规格
     onNormSelect() {
@@ -186,35 +209,133 @@ export default {
     },
     onNormConfirm(obj) {
       this.show_norm = !this.show_norm;
-      console.log(obj);
+      this.details.specs[0].item.map(item => {
+        if (obj[0].code == item.id) this.selected_norm = item;
+      });
     },
     // 选择公益项目
     onCharitableSelect() {
-      this.show_charitable = !this.show_charitable;
+      if (this.details.ispublic) {
+        this._PublicPoolList();
+        this.show_charitable = !this.show_charitable;
+      } else this.$toast("抱歉，该商品未参与公益");
     },
     onCharitableConfirm(obj) {
       this.show_charitable = !this.show_charitable;
-      console.log(obj);
+      if (obj[0].code) {
+        this.public_lool_list.map(item => {
+          if (obj[0].code == item.id) this.selected_public = item;
+        });
+      } else this.selected_public = { id: 0, name: "不选择" };
     },
-    // 加入购物车或购买
-    oncartBuy() {
-      if (this.isbuy) {
-        this.$router.push("/submitOrder");
+    // 点击加载更多
+    onLoadMore() {
+      if (this.isrequest) this._PublicPoolList();
+      else this.$toast("暂无更多");
+    },
+    // 立即购买
+    onBuy() {
+      let { uid: shareid, sid, id } = this.$route.query;
+      let { id: pid, name: pname } = this.selected_public;
+      let {
+        id: spec_item_id,
+        name: spec_item_name,
+        price: spec_item_price
+      } = this.selected_norm;
+      pname = pname == "不选择" ? "" : pname;
+      let data = JSON.stringify({
+        shareid,
+        sid,
+        id,
+        pid,
+        pname,
+        spec_item_id,
+        spec_item_name,
+        spec_item_price,
+        num: this.number_value,
+        remark: this.product_notes
+      });
+      if (this.details.isextend) {
+        if (this.product_notes) this.$toast("请备注你的手机壳机型");
+        else {
+          this.$router.push({
+            path: "/submitOrder",
+            query: { data, type: "share" }
+          });
+        }
+      } else {
+        this.$router.push({
+          path: "/submitOrder",
+          query: { data, type: "share" }
+        });
       }
     },
+    // 加入购物车
+    onCart() {
+      let { uid: shareid, sid, id } = this.$route.query;
+      let { id: pid, name: pname } = this.selected_public;
+      let {
+        id: spec_item_id,
+        name: spec_item_name,
+        price: spec_item_price
+      } = this.selected_norm;
+      pname = pname == "不选择" ? "" : pname;
+      let data = {
+        shareid,
+        sid,
+        id,
+        pid,
+        pname,
+        spec_item_id,
+        spec_item_name,
+        spec_item_price,
+        num: this.number_value,
+        remark: this.product_notes
+      };
+      if (this.details.isextend) {
+        if (this.product_notes) this.$toast("请备注你的手机壳机型");
+        else this._AddCart(data);
+      } else this._AddCart(data);
+    },
     // 网络请求
-    _ArtistGoodsDetail() {
-      const { artistid, gid } = this.$route.query;
-      ArtistGoodsDetail(artistid, gid).then(res => {
-        console.log(res.info);
+    _ShareGoodsDetail() {
+      const { uid, sid, id } = this.$route.query;
+      ShareGoodsDetail(uid, sid, id).then(res => {
         this.details = res.info;
+        this.selected_norm = res.info.specs[0].item[0];
+        if (this.details.ispublic) this.public_tips = "不选择";
         document.title = this.details.title;
         this.swipe_list = res.info.images.split(",");
+        let province_list = {};
+        res.info.specs[0].item.map(item => {
+          province_list[item.id] = item.name;
+        });
+        this.norm_list = { province_list };
       });
+    },
+    _GoodsOver(params) {
+      GoodsOver(params).then(res => {
+        console.log(res);
+      });
+    },
+    _AddCart(params) {
+      AddCart(params).then(() => this.$toast("加入购物车成功"));
+    },
+    _PublicPoolList() {
+      if (this.isrequest) {
+        PublicPoolList(this.page++).then(res => {
+          if (res.list.length == 10) this.isrequest = true;
+          else this.isrequest = false;
+          this.public_lool_list = this.public_lool_list.concat(res.list);
+          let province_list = this.charitable_list.province_list;
+          res.list.map(item => (province_list[item.id] = item.name));
+          this.charitable_list = { province_list };
+        });
+      }
     }
   },
   created() {
-    this._ArtistGoodsDetail();
+    this._ShareGoodsDetail();
   },
   mounted() {
     if (window.history && window.history.pushState) {
@@ -248,9 +369,12 @@ export default {
     }
   }
   .commodity_graphic {
-    img {
-      max-width: 100%;
-      max-height: auto;
+    .commodity_graphic_details {
+      margin-bottom: 110px;
+      img {
+        max-width: 100%;
+        max-height: auto;
+      }
     }
   }
   .van-goods-action {
@@ -269,6 +393,7 @@ export default {
           &.van-popup--round {
             padding: 0;
             .van-picker {
+              height: 90%;
               .van-hairline--top-bottom {
                 height: 90px;
                 line-height: 90px;
@@ -355,7 +480,7 @@ export default {
           justify-content: center;
           img {
             width: auto;
-            height: 80%;
+            height: 95%;
           }
         }
       }
@@ -404,7 +529,7 @@ export default {
     width: 100%;
     height: 400px;
     padding: 30px;
-    margin: 20px auto 110px;
+    margin: 20px auto;
     background-color: #ffffff;
     font-size: 24px;
     line-height: 32px;
@@ -440,7 +565,7 @@ export default {
   .van-popup--bottom {
     &.van-popup--round {
       width: 100%;
-      height: 950px;
+      height: 1054px;
       padding: 56px 40px;
       background-color: #ffffff;
       border-radius: 30px 30px 0 0;
@@ -468,8 +593,8 @@ export default {
         word-break: break-all;
       }
       .commodity_overall_norm {
-        display: flex;
-        flex-direction: row;
+        // display: flex;
+        // flex-direction: row;
         & > div {
           &:nth-child(1) {
             min-width: 50%;
@@ -525,7 +650,7 @@ export default {
           transform: translateY(-50%);
         }
       }
-      .van-cell {
+      & > .van-cell {
         display: flex;
         flex-direction: row;
         align-items: center;
@@ -536,6 +661,15 @@ export default {
         color: #333333;
         &:last-child {
           margin-top: 52px;
+        }
+        .van-cell__title {
+          flex: none;
+          width: 115px;
+        }
+        .van-cell__value {
+          .van-cell {
+            padding: 0 20px;
+          }
         }
         .van-stepper {
           width: 150px;
@@ -549,17 +683,17 @@ export default {
       }
       .commodity_shopping {
         width: 95.2%;
-        height: 88px;
         margin: 46px auto 0;
-        background-color: #ff7301;
         box-shadow: 0px 0px 24px 0px rgba(0, 0, 0, 0.05);
-        border-radius: 44px;
         font-size: 36px;
-        line-height: 88px;
         font-weight: 700;
-        color: #ffffff;
-        text-align: center;
       }
+    }
+    .load_more {
+      width: 100%;
+      height: 100px;
+      text-align: center;
+      line-height: 100px;
     }
   }
 }

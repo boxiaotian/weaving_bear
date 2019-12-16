@@ -1,23 +1,52 @@
 <template>
   <div class="artist">
     <return-btn @onClickReturn="onClickReturn" />
-    <artist-item v-for="item in artist_list" :key="item" :artist="{ item }" />
+    <artist-item
+      v-for="item in artist_list"
+      :key="item.id"
+      :artist="{ ...item }"
+    />
   </div>
 </template>
 
 <script>
 import { ReturnBtn, ArtistItem } from "components/index";
+import { ArtistList } from "network/artist";
 export default {
   data() {
     return {
-      artist_list: [1, 2, 3, 4]
+      artist_list: [],
+      isrequest: true,
+      page: 1
     };
   },
   methods: {
     onClickReturn() {
       return this.$router.push("/home");
     },
-    onBuyNow() {}
+    // 网络请求
+    _ArtistList() {
+      if (this.isrequest) {
+        ArtistList(this.page++).then(res => {
+          if (res.list.length == 10) this.isrequest = true;
+          else this.isrequest = false;
+          this.artist_list = this.artist_list.concat(res.list);
+        });
+      }
+    },
+    // 可滚动容器的高度
+    onScroll() {
+      let innerHeight = document.querySelector("#app").clientHeight;
+      let outerHeight = document.documentElement.clientHeight;
+      let scrollTop = document.documentElement.scrollTop;
+      if (innerHeight - outerHeight - 50 < scrollTop) {
+        this._ArtistList();
+      }
+    }
+  },
+  created() {
+    this._ArtistList();
+    window.addEventListener("scroll", this.onScroll);
   },
   mounted() {
     if (window.history && window.history.pushState) {

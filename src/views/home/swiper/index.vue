@@ -1,8 +1,14 @@
 <template>
-  <swiper :options="swiperOption">
-    <swiper-slide v-for="item in slides" :key="item"
-      ><img src="~assets/img/home/banner.png"
-    /></swiper-slide>
+  <swiper v-if="isSwiper" :options="swiperOption">
+    <swiper-slide v-for="item in swiper_list" :key="item.id">
+      <a v-if="item.linktype" :href="item.linkcontent">
+        <img
+          v-if="item.linktype == 1"
+          :src="$store.state.interface_domain + item.thumb"
+        />
+      </a>
+      <img v-else :src="$store.state.interface_domain + item.thumb" />
+    </swiper-slide>
   </swiper>
 </template>
 <script>
@@ -11,33 +17,34 @@ export default {
   data() {
     return {
       currentTab: 1,
-      slides: [1, 2, 3, 4],
       swiperOption: {
         initialSlide: 1,
         debugger: true,
-        autoplay: false,
-        loop: false,
+        autoplay: true,
+        loop: true,
         slidesPerView: "auto",
         centeredSlides: true,
         hashNavigation: true
-      }
+      },
+      isSwiper: false
     };
   },
+  props: {
+    swiper_list: Array
+  },
+  methods: {
+    swiper() {
+      return this.$refs.mySwiper.swiper;
+    }
+  },
   created() {
-    this.swiperOption = {
-      ...this.swiperOption,
-      autoplay: this.slides.length > 1 ? true : false,
-      loop: this.slides.length > 1 ? true : false
-    };
+    setTimeout(() => {
+      this.isSwiper = true;
+    }, 500);
   },
   components: {
     swiper,
     swiperSlide
-  },
-  computed: {
-    swiper() {
-      return this.$refs.mySwiper.swiper;
-    }
   }
 };
 </script>

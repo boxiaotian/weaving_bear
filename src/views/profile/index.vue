@@ -1,20 +1,37 @@
 <template>
   <div class="personal_center">
     <div class="personal_center_info">
-      <router-link to="/distributor" tag="div" class="envoy">
-        <van-button
-          type="primary"
-          text="成为公益推广大使"
-          color="#ff7301"
-          round
-        />
-      </router-link>
+      <van-button
+        class="envoy"
+        type="primary"
+        text="成为公益推广大使"
+        color="#ff7301"
+        @click="onPromoterName"
+        round
+      />
       <div class="profile_info_group">
-        <img class="profile_avatar" src="~assets/img/home/artist_three.png" />
+        <img class="profile_avatar" :src="profile_info.avatar" />
         <div class="profile_info">
-          <div class="profile_name">宅在家里的旅行家</div>
+          <div class="profile_name">{{ profile_info.nickname }}</div>
           <div>
             <van-button
+              v-if="profile_info.isvip"
+              class="profile_grade"
+              type="primary"
+              text="VIP用户"
+              color="#1b1b1b"
+              round
+            />
+            <van-button
+              v-else-if="!profile_info.isvip && profile_info.isrecommend"
+              class="profile_grade"
+              type="primary"
+              text="推广大使"
+              color="#1b1b1b"
+              round
+            />
+            <van-button
+              v-else
               class="profile_grade"
               type="primary"
               text="普通用户"
@@ -34,27 +51,27 @@
       </div>
       <van-grid class="my_module" :border="false" square>
         <van-grid-item @click="onJumpLink('myCreation')">
-          <div class="my_module_number">2</div>
+          <div class="my_module_number">{{ profile_info.shareNum }}</div>
           <div>我的作品</div>
         </van-grid-item>
         <van-grid-item @click="onJumpLink('myCertificate')">
-          <div class="my_module_number">5</div>
+          <div class="my_module_number">{{ profile_info.certNum }}</div>
           <div>公益证书</div>
         </van-grid-item>
         <van-grid-item @click="onJumpLink('shoppingCart')">
-          <div class="my_module_number">53</div>
+          <div class="my_module_number">{{ profile_info.cartNum }}</div>
           <div>购物车</div>
         </van-grid-item>
       </van-grid>
-      <router-link to="/vipService" tag="div" class="buy_vip">
+      <div class="buy_vip" @click="onVipInfo">
         <img class="vip_img" src="~assets/img/icon/VIP.png" />
         <span>升级VIP享受更多权益</span>
         <img class="arrow_o" src="~assets/img/icon/arrow_o.png" />
-      </router-link>
+      </div>
     </div>
     <div class="total_amount">
       <div>
-        <h5>2352.00</h5>
+        <h5>{{ profile_info.money }}</h5>
         <h6 style="color: #999999;">可提现金额（元）</h6>
       </div>
       <van-button
@@ -122,11 +139,35 @@
 
 <script>
 import { MainTabBar } from "components/index";
+import { Index } from "network/profile";
 export default {
+  data() {
+    return {
+      profile_info: {}
+    };
+  },
   methods: {
+    onPromoterName() {
+      this.$store.commit("promoterName", {
+        isrecommend: this.profile_info.isrecommend,
+        name: this.profile_info.name
+      });
+      this.$router.push("/distributor");
+    },
     onJumpLink(type) {
       this.$router.push(`/${type}`);
+    },
+    onVipInfo() {
+      if (this.profile_info.isvip) this.$router.push("/vipServiceInfo");
+      else this.$router.push("/vipService");
+    },
+    // 网络请求
+    _Index() {
+      Index().then(res => (this.profile_info = res.info));
     }
+  },
+  created() {
+    this._Index();
   },
   components: {
     MainTabBar
@@ -171,18 +212,16 @@ export default {
     background-image: linear-gradient(-31deg, #ffa868 0%, #ffc8a0 100%);
     .envoy {
       align-self: flex-end;
+      width: 230px;
+      height: 50px;
+      padding: 0;
       margin-top: 30px;
       margin-right: -30px;
-      .van-button {
-        width: 230px;
-        height: 50px;
-        padding: 0;
-        border-radius: 25px 0px 0px 25px;
-        font-size: 24px;
-        font-weight: 700;
-        line-height: 24px;
-        color: #ffffff;
-      }
+      border-radius: 25px 0px 0px 25px;
+      font-size: 24px;
+      font-weight: 700;
+      line-height: 24px;
+      color: #ffffff;
     }
     .profile_info_group {
       display: flex;

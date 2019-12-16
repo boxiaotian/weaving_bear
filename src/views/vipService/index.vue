@@ -7,7 +7,7 @@
           <h3>购买VIP</h3>
           <h6>购买vip享受更多权益</h6>
         </div>
-        <h1>365/年</h1>
+        <h1>{{ deadline }}</h1>
       </div>
       <div class="rights_interests_list">
         <div
@@ -33,6 +33,7 @@
 
 <script>
 import { ReturnBtn } from "components/index";
+import { GetVipSet, GetVipPayParams } from "network/profile";
 export default {
   data() {
     return {
@@ -41,16 +42,29 @@ export default {
         "支持放公司的logo",
         "支持挂到自己的公众号",
         "支持上传公司图文简介"
-      ]
+      ],
+      info: {}
     };
+  },
+  computed: {
+    deadline: function() {
+      let time = this.info.viptime == 1 ? "" : this.info.viptime;
+      return `${parseInt(this.info.vipprice)}/${time}年`;
+    }
   },
   methods: {
     onClickReturn() {
       this.$router.replace("/profile");
     },
     onVIP() {
-      this.$router.push("/vipServiceInfo");
+      GetVipPayParams().then(res => {
+        console.log(res);
+      });
+      // this.$router.push("/vipServiceInfo");
     }
+  },
+  created() {
+    GetVipSet().then(res => (this.info = res));
   },
   mounted() {
     if (window.history && window.history.pushState) {

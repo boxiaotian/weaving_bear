@@ -1,68 +1,67 @@
 <template>
   <div class="artist_works">
     <return-btn @onClickReturn="onClickReturn" />
-    <div class="artist_work">
-      <good-item
-        v-for="item in customize_list"
-        :key="item.id"
-        :good="item"
-        @customize="onDetails(item.id)"
-      >
-        <template slot="good_img">
-          <img
-            v-if="item.id == 1"
-            src="~/assets/img/customize/phone_case.png"
-          />
-          <img v-else-if="item.id == 2" src="~/assets/img/customize/cup.png" />
-          <img
-            v-else-if="item.id == 3"
-            src="~/assets/img/customize/pillow.png"
-          />
-          <img v-else src="~/assets/img/customize/satchel.png" />
-        </template>
-        <template slot="good_fun">
-          <div class="good_price"><span>￥</span>300</div>
-        </template>
-      </good-item>
-    </div>
+    <good-item
+      v-for="item in customize_list"
+      :key="item.id"
+      :good="{ ...item }"
+      @customize="onDetails(item.id)"
+    >
+      <template slot="good_img">
+        <img :src="$store.state.interface_domain + item.thumb" />
+      </template>
+      <template slot="good_fun">
+        <div class="good_price"><span>￥</span>{{ item.price }}</div>
+      </template>
+    </good-item>
   </div>
 </template>
 
 <script>
 import { ReturnBtn, GoodItem } from "components/index";
+import { ArtistGoodsList } from "network/artist";
 export default {
   data() {
     return {
-      customize_list: [
-        {
-          id: 1,
-          title: "手机壳"
-        },
-        {
-          id: 2,
-          title: "情侣变色杯"
-        },
-        {
-          id: 3,
-          title: "抱枕"
-        },
-        {
-          id: 4,
-          title: "单肩挎包"
-        }
-      ]
+      customize_list: [],
+      isrequest: true,
+      page: 1
     };
   },
   methods: {
     onClickReturn() {
       return this.$router.back();
     },
-    onDetails(id) {
+    onDetails(gid) {
       this.$router.push({
-        name: "productDetails",
-        params: { id }
+        path: "/artistDetails",
+        query: { artistid: this.$route.query.id, gid }
       });
+    },
+    // 网络请求
+    _ArtistGoodsList() {
+      if (this.isrequest) {
+        ArtistGoodsList(this.page++, this.$route.query.id).then(res => {
+          if (res.list.length == 10) this.isrequest = true;
+          else this.isrequest = false;
+          this.customize_list = this.customize_list.concat(res.list);
+        });
+      }
+    },
+    // 可滚动容器的高度
+    onScroll() {
+      let innerHeight = document.querySelector("#app").clientHeight;
+      let outerHeight = document.documentElement.clientHeight;
+      let scrollTop = document.documentElement.scrollTop;
+      if (innerHeight - outerHeight - 50 < scrollTop) {
+        this._ArtistGoodsList();
+      }
     }
+  },
+  created() {
+    document.title = this.$route.query.name;
+    this._ArtistGoodsList();
+    window.addEventListener("scroll", this.onScroll);
   },
   mounted() {
     if (window.history && window.history.pushState) {
@@ -82,22 +81,20 @@ export default {
 
 <style lang="less" scoped>
 .artist_works {
+  display: flex;
+  flex-flow: wrap;
+  justify-content: space-between;
   padding: 0 30px;
-  .artist_work {
-    display: flex;
-    flex-flow: wrap;
-    justify-content: space-between;
-    .good_item {
-      margin: 30px 0;
-      .good_price {
-        margin: 30px auto;
-        font-size: 36px;
-        font-weight: 700;
-        color: #ff7024;
-        span {
-          font-size: 24px;
-          font-weight: 400;
-        }
+  .good_item {
+    margin: 30px 0;
+    .good_price {
+      margin: 30px auto;
+      font-size: 36px;
+      font-weight: 700;
+      color: #ff7024;
+      span {
+        font-size: 24px;
+        font-weight: 400;
       }
     }
   }
