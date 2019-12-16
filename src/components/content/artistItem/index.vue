@@ -1,13 +1,13 @@
 <template>
   <router-link
-    :to="{ path: '/artistWorks', query: { id: artist.item } }"
+    :to="{ path: '/artistWorks', query: { id: artist.id, name: artist.name } }"
     tag="div"
     class="artist_item"
   >
-    <img src="~assets/img/home/artist_three.png" />
+    <img :src="$store.state.interface_domain + artist.thumb" />
     <div class="title_introduction">
-      <div class="title">艺术家</div>
-      <div class="introduction">简介{{ artist.item }}</div>
+      <div class="title">{{ artist.name }}</div>
+      <div class="introduction">简介{{ artist.descri }}</div>
     </div>
   </router-link>
 </template>
@@ -33,9 +33,11 @@ export default {
   line-height: 38px;
   color: #333333;
   text-align: center;
+  overflow: hidden;
 
   img {
-    width: 330px;
+    // width: 330px;
+    width: auto;
     height: 290px;
     border-radius: 18px 18px 0 0;
   }

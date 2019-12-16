@@ -15,8 +15,8 @@
         />
       </div>
       <div>
-        <span>可提现金额：￥2352.00</span>
-        <span style="color:#001fa4">全部提现</span>
+        <span>可提现金额：￥{{ money }}</span>
+        <span style="color:#001fa4" @click="onWithdrawAll">全部提现</span>
       </div>
     </div>
     <van-button
@@ -24,6 +24,7 @@
       text="提现到微信"
       color="#ff7301"
       size="large"
+      @click="onWithdrawWeChat"
       round
     />
     <van-number-keyboard
@@ -42,9 +43,11 @@
 
 <script>
 import { ReturnBtn } from "components/index";
+import { MyMoney, AddApply } from "network/profile";
 export default {
   data() {
     return {
+      money: "0.00",
       amount_value: "",
       show_keyboard: false
     };
@@ -56,8 +59,32 @@ export default {
     onWithdrawRecord() {
       this.$router.push("/withdrawRecord");
     },
+    onWithdrawAll() {
+      if (this.money > 0) this.amount_value = this.money;
+      else this.$toast("抱歉，暂无可提现余额");
+    },
+    onWithdrawWeChat() {
+      if (!this.amount_value) this.$toast("请输入提现余额");
+      else if (this.amount_value <= 0) this.$toast("可提现余额太小");
+      else if (this.amount_value >= this.money) this.$toast("超出可提现范围");
+      else this._AddApply();
+    },
     onInput() {},
-    onDelete() {}
+    onDelete() {},
+    // 网络请求
+    _MyMoney() {
+      MyMoney().then(res => (this.money = res.info.money));
+    },
+    _AddApply() {
+      AddApply(this.amount_value).then(() => {
+        this.$toast("提现成功");
+        this.amount_value = "";
+        this._MyMoney();
+      });
+    }
+  },
+  created() {
+    this._MyMoney();
   },
   mounted() {
     if (window.history && window.history.pushState) {
@@ -113,6 +140,7 @@ export default {
 </style>
 <style lang="less" scoped>
 .withdraw {
+  height: 1000px;
   padding: 0 30px;
   .withdraw_group {
     display: flex;

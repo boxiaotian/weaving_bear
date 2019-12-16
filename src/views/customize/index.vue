@@ -50,7 +50,7 @@
             v-else-if="custom_info.customize_type == 2"
             :id="'imageWrapper' + custom_info.customize_type"
           >
-            <img :src="custom_info.thumb" />
+            <img class="model_img" :src="custom_info.thumb" />
             <div
               class="pillow_mask"
               @touchstart="down"
@@ -391,7 +391,7 @@ export default {
             left: 0;
             top: 0;
             width: auto;
-            height: 100%;
+            max-height: 100%;
             /* z-index: 9; */
           }
         }
@@ -401,7 +401,7 @@ export default {
           height: 550px;
           background-repeat: no-repeat;
           background-size: cover;
-          img {
+          .model_img {
             width: 100%;
             height: 100%;
           }
@@ -415,10 +415,10 @@ export default {
             z-index: 1;
             img {
               position: absolute;
-              left: 0;
-              top: 0;
+              left: 50px;
+              top: 70px;
               width: auto;
-              height: 100%;
+              max-height: 100%;
             }
           }
           .pillow_mask {
@@ -433,7 +433,7 @@ export default {
           height: 91.5%;
           background-repeat: no-repeat;
           background-size: cover;
-          img {
+          .model_img {
             width: 100%;
             height: 100%;
           }
@@ -449,7 +449,7 @@ export default {
               left: 0;
               top: 0;
               width: auto;
-              height: 100%;
+              max-height: 100%;
             }
           }
           .shoulder_bag_mask {

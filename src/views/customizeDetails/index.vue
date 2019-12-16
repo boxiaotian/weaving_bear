@@ -7,7 +7,12 @@
     >
       <van-swipe :autoplay="3000" indicator-color="#ff7301">
         <van-swipe-item v-for="(item, index) in swipe_list" :key="index">
-          <img :src="$store.state.interface_domain + item" />
+          <img
+            :src="$store.state.interface_domain + item"
+            :style="{
+              borderRadius: $store.state.custom_info.isextend ? '15px' : '0'
+            }"
+          />
         </van-swipe-item>
       </van-swipe>
     </div>
@@ -187,7 +192,8 @@ export default {
       page: 1, // 公益分页
       product_notes: "", // 商品备注
       number_value: 1, // 购买值
-      isbuy: true
+      isbuy: true,
+      clearget_timer: null // 清除定时器
     };
   },
   methods: {
@@ -284,12 +290,14 @@ export default {
         pname: this.selected_public.name,
         remark: this.product_notes
       };
-      EditInfo(params).then(res =>
-        this.$router.push({
-          path: "/submitOrder",
-          query: { id: res.id, num: this.number_value, type: "customize" }
-        })
-      );
+      EditInfo(params).then(res => {
+        this.$store.commit("submitInfo", {
+          id: res.id,
+          num: this.number_value,
+          type: "customize"
+        });
+        this.$router.push("/submitOrder");
+      });
     },
     _AddCart() {
       let params = {
@@ -318,7 +326,13 @@ export default {
     }
   },
   created() {
-    this._CustomGoodsDetail();
+    if (window.history.length <= 1) {
+      this.$toast("该页面不能直接访问");
+      this.clearget_timer = setTimeout(
+        () => this.$router.replace("/home"),
+        1000
+      );
+    } else this._CustomGoodsDetail();
   },
   mounted() {
     if (window.history && window.history.pushState) {

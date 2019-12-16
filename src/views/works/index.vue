@@ -1,58 +1,117 @@
 <template>
   <div class="works">
     <return-btn @onClickReturn="onClickReturn" />
-    <router-link
-      to="/worksIncome"
-      tag="div"
+    <div
       class="works_item"
-      v-for="item in 3"
-      :key="item"
+      v-for="item in works_list"
+      :key="item.id"
+      @click="onWorksIncome(item.id)"
     >
       <div class="works_item_info">
-        <img src="~assets/img/customize/phone_case.png" />
-        <h5>手机壳名称手机壳名称手机壳名称手机壳名称</h5>
-        <span>红十字基金会</span>
+        <img :src="$store.state.interface_domain + item.thumb" />
+        <h5>{{ item.title }}</h5>
+        <span v-if="pinfo.id">pinfo.name</span>
+        <span style="color:#999999" v-else>未参与公益</span>
       </div>
       <div class="works_item_bottom">
         <div>
           <img src="~assets/img/icon/people.png" />
-          <span>5</span>
+          <span>{{ item.buynum }}</span>
         </div>
         <div>
           <img src="~assets/img/icon/bonus.png" />
-          <span>￥30.25</span>
+          <span>￥{{ item.allprice }}</span>
         </div>
       </div>
-      <van-icon
-        name="delete"
-        @click.stop="onDelete"
-        color="#000000"
-        size="1em"
+      <img
+        class="works_delete"
+        src="~assets/img/icon/w_delete.png"
+        @click.stop="onDeleteWorks(item.id)"
       />
-    </router-link>
+    </div>
   </div>
 </template>
 
 <script>
 import { ReturnBtn } from "components/index";
+import { ShareGoodsList, DeleteShareGoods } from "network/profile";
 export default {
+  data() {
+    return {
+      works_list: [],
+      pinfo: {},
+      isrequest: true,
+      page: 1
+    };
+  },
   methods: {
+    // 返回上一页
     onClickReturn() {
-      this.$router.push("/myCreation");
+      this.$router.replace("/myCreation");
     },
-    onDelete() {
+    // 商品购买记录
+    onWorksIncome(sgid) {
+      this.$router.push({
+        path: "/worksIncome",
+        query: {
+          sid: this.$route.query.sid,
+          id: this.pinfo.id ? this.pinfo.id : 0,
+          sgid
+        }
+      });
+    },
+    // 删除商品
+    onDeleteWorks(id) {
       this.$dialog
         .confirm({
           title: "您确定删除该作品",
           confirmButtonColor: "#ff7301"
         })
-        .then(() => {
-          // on confirm
-        })
-        .catch(() => {
-          // on cancel
+        .then(() => this._DeleteShareGoods(id))
+        .catch(() => {});
+    },
+    // 网络请求
+    _ShareGoodsList() {
+      if (this.isrequest) {
+        ShareGoodsList(this.page++, this.$route.query.sid).then(res => {
+          this.pinfo = res.pinfo;
+          if (res.list.length == 10) this.isrequest = true;
+          else this.isrequest = false;
+          this.works_list = this.works_list.concat(res.list);
         });
+      }
+    },
+    _DeleteShareGoods(id) {
+      DeleteShareGoods(this.$route.query.sid, id).then(() => {
+        this.$toast("删除成功");
+        this.clearget_timer = setTimeout(() => {
+          this.works_list = [];
+          this.page = 1;
+          this.isrequest = true;
+          this._ShareGoodsList();
+        }, 1000);
+      });
+    },
+    // 可滚动容器的高度
+    onScroll() {
+      let innerHeight = document.querySelector("#app").clientHeight;
+      let outerHeight = document.documentElement.clientHeight;
+      let scrollTop =
+        document.documentElement.scrollTop ||
+        document.body.scrollTop ||
+        window.pageYOffset;
+      if (innerHeight - outerHeight - 50 < scrollTop) {
+        this._ShareGoodsList();
+      }
     }
+  },
+  created() {
+    this._ShareGoodsList();
+    window.addEventListener("scroll", this.onScroll);
+  },
+  beforeDestroy() {
+    clearInterval(this.clearget_timer);
+    this.clearget_timer = null;
   },
   components: {
     ReturnBtn
@@ -119,10 +178,12 @@ export default {
     //   justify-content: space-between;
     //   padding: 0 20px;
     // }
-    .van-icon {
+    .works_delete {
       position: absolute;
       top: 17px;
       right: 24px;
+      width: 40px;
+      height: 40px;
     }
   }
 }

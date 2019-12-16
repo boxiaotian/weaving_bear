@@ -32,6 +32,7 @@
 </template>
 
 <script>
+import { onBridgeReady } from "common/utils";
 import { ReturnBtn } from "components/index";
 import { GetVipSet, GetVipPayParams } from "network/profile";
 export default {
@@ -49,7 +50,11 @@ export default {
   computed: {
     deadline: function() {
       let time = this.info.viptime == 1 ? "" : this.info.viptime;
-      return `${parseInt(this.info.vipprice)}/${time}年`;
+      let vipprice =
+        this.info.vipprice > 1
+          ? parseInt(this.info.vipprice)
+          : this.info.vipprice;
+      return `${vipprice}/${time}年`;
     }
   },
   methods: {
@@ -58,9 +63,12 @@ export default {
     },
     onVIP() {
       GetVipPayParams().then(res => {
-        console.log(res);
+        onBridgeReady(res.params).then(res_pay => {
+          if (res_pay.err_msg == "get_brand_wcpay_request:ok") {
+            this.$router.push("/vipServiceInfo");
+          }
+        });
       });
-      // this.$router.push("/vipServiceInfo");
     }
   },
   created() {

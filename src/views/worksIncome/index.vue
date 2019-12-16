@@ -1,10 +1,14 @@
 <template>
   <div class="works_income">
     <return-btn @onClickReturn="onClickReturn" />
-    <div class="works_income_item" v-for="item in 3" :key="item">
+    <div
+      class="works_income_item"
+      v-for="item in works_income_list"
+      :key="item.id"
+    >
       <div class="works_income_month">
-        <span>2019/{{ 11 - item }}</span>
-        <span>收入：￥5.76</span>
+        <span>{{ item.date }}</span>
+        <!-- <span>收入：￥5.76</span> -->
       </div>
       <div class="works_income_source" v-for="item in 2" :key="item">
         <div class="commodity_info">
@@ -17,7 +21,7 @@
               <h6>高清彩印 来图定制高清彩印 来图定制高清彩印 来图定制</h6>
             </div>
           </div>
-          <div class="reward_price">+2000.88</div>
+          <div class="reward_price">+200.88</div>
         </div>
         <div class="buyers">
           <div>
@@ -33,11 +37,64 @@
 
 <script>
 import { ReturnBtn } from "components/index";
+import { ShareGoodsBuyDetail } from "network/profile";
 export default {
+  data() {
+    return {
+      works_income_list: [
+        {
+          id: 1,
+          date: "2019/10",
+          gthumb: "/uploads/20191129/FoOm6lUStodHwkqD20ebEFYn1oQc.jpg",
+          gtitle: "华为畅享 9S",
+          descri: "华为畅享 9S",
+          ulogo:
+            "http://thirdwx.qlogo.cn/mmopen/mONcle9pic3z4IuujpVH8ia8bBeCvf65n8ckCnfYyNzAEgT36liclicv0YyaIlrkR3icEkbYPRmW8Jb9E3RLvKTIWKINMtUUrRbFI/132",
+          uname: "小田",
+          createtime: "2019.12.10 16.36",
+          reward: "200.00"
+        },
+        {
+          id: 2,
+          date: "2019/09",
+          gthumb: "/uploads/20191129/FoOm6lUStodHwkqD20ebEFYn1oQc.jpg",
+          gtitle: "华为畅享 9S",
+          descri: "华为畅享 9S",
+          ulogo:
+            "http://thirdwx.qlogo.cn/mmopen/mONcle9pic3z4IuujpVH8ia8bBeCvf65n8ckCnfYyNzAEgT36liclicv0YyaIlrkR3icEkbYPRmW8Jb9E3RLvKTIWKINMtUUrRbFI/132",
+          uname: "小田",
+          createtime: "2019.12.10 16.36",
+          reward: "200.00"
+        },
+        {
+          id: 3,
+          date: "2019/08",
+          gthumb: "/uploads/20191129/FoOm6lUStodHwkqD20ebEFYn1oQc.jpg",
+          gtitle: "华为畅享 9S",
+          descri: "华为畅享 9S",
+          ulogo:
+            "http://thirdwx.qlogo.cn/mmopen/mONcle9pic3z4IuujpVH8ia8bBeCvf65n8ckCnfYyNzAEgT36liclicv0YyaIlrkR3icEkbYPRmW8Jb9E3RLvKTIWKINMtUUrRbFI/132",
+          uname: "小田",
+          createtime: "2019.12.10 16.36",
+          reward: "200.00"
+        }
+      ]
+    };
+  },
   methods: {
     onClickReturn() {
       this.$router.push("/works");
+    },
+    // 网络请求
+    _ShareGoodsBuyDetail() {
+      let { sid, sgid } = this.$route.query;
+      ShareGoodsBuyDetail(1, sid, sgid).then(res => {
+        console.log(res);
+      });
     }
+  },
+  created() {
+    this._ShareGoodsBuyDetail();
   },
   components: {
     ReturnBtn
@@ -77,16 +134,21 @@ export default {
           display: flex;
           flex-direction: row;
           width: 75%;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
           .commodity_img_group {
-            width: 78px;
-            height: 78px;
+            min-width: 78px;
+            min-height: 78px;
             margin-right: 30px;
             background-color: #ffffff;
             box-shadow: 0px 0px 40px 0px rgba(0, 0, 0, 0.05);
             border-radius: 18px;
             img {
+              display: block;
               width: auto;
               height: 100%;
+              margin: auto;
             }
           }
           h5 {
@@ -106,7 +168,7 @@ export default {
           }
         }
         .reward_price {
-          width: 25%;
+          max-width: 158px;
           font-size: 36px;
           font-weight: 700;
           color: #ff7301;

@@ -2,7 +2,7 @@
   <div class="good_item" @click="onCustomize">
     <slot name="good_img" />
     <div class="good_item_title">{{ good.title }}</div>
-    <div class="good_item_detail">高清彩印 来图定制</div>
+    <div class="good_item_detail">{{ good.descri }}</div>
     <slot name="good_fun" />
   </div>
 </template>
@@ -33,8 +33,9 @@ export default {
   border-radius: 18px;
   font-weight: 700;
   img {
-    width: 280px;
-    height: 280px;
+    width: auto;
+    height: 190px;
+    margin: 45px auto;
   }
   .good_item_title {
     font-size: 30px;

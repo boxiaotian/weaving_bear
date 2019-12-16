@@ -13,44 +13,56 @@
       <van-tab title="已发货" />
       <van-tab title="已完成" />
     </van-tabs>
-    <div class="my_order_item">
+    <div
+      class="my_order_item"
+      v-for="item in order_list"
+      :key="item.id"
+      @click="onOrderDetails(item.id)"
+    >
       <div class="my_order_item_top">
-        <span>订单号：YZ5610345</span>
-        <span class="my_order_status">待付款</span>
+        <span>订单号：{{ item.ordersn }}</span>
+        <span class="my_order_status">{{ orderStatus(item.status) }}</span>
       </div>
       <div class="my_order_item_center">
         <div class="my_order_commodity_img">
-          <img src="~assets/img/customize/phone_case_big.png" />
+          <img :src="$store.state.interface_domain + item.gthumb" />
         </div>
         <div class="my_order_commodity_content">
-          <h6>定制手机壳</h6>
-          <p>高清彩印 来图定制</p>
+          <h6>{{ item.cname ? item.cname + "手机壳" : item.gtitle }}</h6>
+          <p>{{ item.gdescri }}</p>
+          <span>规格:{{ item.specitemname }}</span>
         </div>
         <div>
-          <div class="my_order_commodity_price">¥1000.00</div>
+          <div class="my_order_commodity_price">¥{{ item.specitemprice }}</div>
           <div class="my_order_commodity_number">x1</div>
         </div>
       </div>
       <div class="public_interest_name">
         <span>公益宝贝</span>
-        <span>成交后平台将捐赠**给**公益</span>
+        <span>{{
+          item.pid
+            ? `成交后平台将以您的名义捐赠${item.pprice}给${item.pname}`
+            : "未参与公益项目"
+        }}</span>
       </div>
       <div class="my_order_item_bottom">
         <div>
-          <span style="color:#999999">共1件</span>
-          <span>小计：<b>28.88元</b></span>
+          <span style="color:#999999">共{{ item.num }}件</span>
+          <span
+            >小计：<b>{{ item.goodsprice }}元</b></span
+          >
         </div>
         <van-button
           type="primary"
           size="mini"
           text="立即付款"
           color="#FF7301"
-          v-if="order_active == 1"
+          v-if="item.status == 1"
           plain
           round
         />
         <van-button
-          v-else-if="order_active == 2 || order_active == 3"
+          v-else-if="item.status == 2 || item.status == 3"
           type="primary"
           size="mini"
           text="查看物流"
@@ -59,7 +71,7 @@
           round
         />
         <van-button
-          v-else-if="order_active == 4"
+          v-else-if="item.status == 4"
           type="primary"
           size="mini"
           text="确认收货"
@@ -74,10 +86,14 @@
 
 <script>
 import { ReturnBtn } from "components/index";
+import { OrderList } from "network/profile";
 export default {
   data() {
     return {
-      order_active: 0
+      order_active: 0,
+      order_list: [],
+      isrequest: true,
+      page: 1
     };
   },
   methods: {
@@ -86,7 +102,52 @@ export default {
     },
     onOederTab(order_active) {
       this.order_active = order_active;
+      this.order_list = [];
+      this.isrequest = true;
+      this.page = 1;
+      this._OrderList();
+    },
+    // 订单状态
+    orderStatus(status) {
+      let status_text;
+      if (status == 1) status_text = "待付款";
+      else if (status == 2) status_text = "待发货";
+      else if (status == 3) status_text = "已发货";
+      else if (status == 4) status_text = "已完成";
+      return status_text;
+    },
+    // 订单详情
+    onOrderDetails(id) {
+      this.$router.push({ path: "/orderDetails", query: { id } });
+    },
+    // 网络请求
+    _OrderList() {
+      if (this.isrequest) {
+        OrderList(this.page++, this.order_active).then(res => {
+          console.log(res.list);
+
+          if (res.list.length == 10) this.isrequest = true;
+          else this.isrequest = false;
+          this.order_list = this.order_list.concat(res.list);
+        });
+      }
+    },
+    // 可滚动容器的高度
+    onScroll() {
+      let innerHeight = document.querySelector("#app").clientHeight;
+      let outerHeight = document.documentElement.clientHeight;
+      let scrollTop =
+        document.documentElement.scrollTop ||
+        document.body.scrollTop ||
+        window.pageYOffset;
+      if (innerHeight - outerHeight - 50 < scrollTop) {
+        this._OrderList();
+      }
     }
+  },
+  created() {
+    this._OrderList();
+    window.addEventListener("scroll", this.onScroll);
   },
   components: {
     ReturnBtn
@@ -120,7 +181,7 @@ export default {
   }
   .my_order_item {
     width: 100%;
-    height: 480px;
+    min-height: 480px;
     padding: 0 20px 0 40px;
     margin-top: 30px;
     background: rgba(255, 255, 255, 1);
@@ -165,6 +226,14 @@ export default {
           font-size: 24px;
           color: #999999;
         }
+        span {
+          display: inline-block;
+          padding: 5px 20px;
+          background-color: #f6f6f6;
+          border-radius: 6px;
+          font-size: 24px;
+          color: #999999;
+        }
       }
       .my_order_commodity_price {
         font-size: 30px;
@@ -200,8 +269,7 @@ export default {
       .van-button {
         width: 150px;
         height: 40px;
-        margin-top: 40px;
-        margin-left: 26px;
+        margin: 40px 0 20px 26px;
         font-size: 24px;
         span {
           margin: 0;

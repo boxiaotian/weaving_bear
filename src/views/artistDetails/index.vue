@@ -244,23 +244,23 @@ export default {
         price: spec_item_price
       } = this.selected_norm;
       pname = pname == "不选择" ? "" : pname;
-      let data = JSON.stringify({
-        said,
-        id,
-        pid,
-        pname,
-        spec_item_id,
-        spec_item_name,
-        spec_item_price,
-        num: this.number_value,
-        remark: this.product_notes
-      });
-      if (this.selected_norm.stock)
-        this.$router.push({
-          path: "/submitOrder",
-          query: { data, type: "artist" }
+      if (this.selected_norm.stock) {
+        this.$store.commit("submitInfo", {
+          data: {
+            said,
+            id,
+            pid,
+            pname,
+            spec_item_id,
+            spec_item_name,
+            spec_item_price,
+            num: this.number_value,
+            remark: this.product_notes
+          },
+          type: "artist"
         });
-      else this.$toast("抱歉！该规格商品已售完");
+        this.$router.push("/submitOrder");
+      } else this.$toast("抱歉！该规格商品已售完");
     },
     // 加入购物车
     onCart() {
@@ -290,7 +290,6 @@ export default {
     _ArtistGoodsDetail() {
       const { artistid, gid } = this.$route.query;
       ArtistGoodsDetail(artistid, gid).then(res => {
-        console.log(res.info);
         this.details = res.info;
         this.selected_norm = res.info.specs[0].item[0];
         if (this.details.ispublic) this.public_tips = "不选择";
@@ -323,6 +322,16 @@ export default {
   },
   created() {
     this._ArtistGoodsDetail();
+  },
+  mounted() {
+    if (window.history && window.history.pushState) {
+      history.pushState(null, null, document.URL);
+      window.addEventListener("popstate", this.onClickReturn, false); //false阻止默认事件
+    }
+    this.swipeHeight = (window.outerWidth * window.dpr) / window.rem;
+  },
+  destroyed() {
+    window.removeEventListener("popstate", this.onClickReturn, false); //false阻止默认事件
   },
   components: {
     ReturnBtn

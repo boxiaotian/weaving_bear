@@ -243,7 +243,7 @@ export default {
         price: spec_item_price
       } = this.selected_norm;
       pname = pname == "不选择" ? "" : pname;
-      let data = JSON.stringify({
+      let data = {
         shareid,
         sid,
         id,
@@ -254,20 +254,16 @@ export default {
         spec_item_price,
         num: this.number_value,
         remark: this.product_notes
-      });
+      };
       if (this.details.isextend) {
         if (this.product_notes) this.$toast("请备注你的手机壳机型");
         else {
-          this.$router.push({
-            path: "/submitOrder",
-            query: { data, type: "share" }
-          });
+          this.$store.commit("submitInfo", { data, type: "share" });
+          this.$router.push("/submitOrder");
         }
       } else {
-        this.$router.push({
-          path: "/submitOrder",
-          query: { data, type: "share" }
-        });
+        this.$store.commit("submitInfo", { data, type: "share" });
+        this.$router.push("/submitOrder");
       }
     },
     // 加入购物车

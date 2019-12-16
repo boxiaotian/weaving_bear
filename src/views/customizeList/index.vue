@@ -57,8 +57,6 @@ export default {
     _CustomGoodsList() {
       if (this.isrequest) {
         CustomGoodsList(this.page++).then(res => {
-          console.log(res);
-
           if (res.list.length == 10) this.isrequest = true;
           else this.isrequest = false;
           this.customize_list = this.customize_list.concat(res.list);
@@ -69,7 +67,10 @@ export default {
     onScroll() {
       let innerHeight = document.querySelector("#app").clientHeight;
       let outerHeight = document.documentElement.clientHeight;
-      let scrollTop = document.documentElement.scrollTop;
+      let scrollTop =
+        document.documentElement.scrollTop ||
+        document.body.scrollTop ||
+        window.pageYOffset;
       if (innerHeight - outerHeight - 50 < scrollTop) {
         this._CustomGoodsList();
       }

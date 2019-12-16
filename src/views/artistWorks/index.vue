@@ -30,7 +30,7 @@ export default {
   },
   methods: {
     onClickReturn() {
-      return this.$router.back();
+      this.$router.back();
     },
     onDetails(gid) {
       this.$router.push({
@@ -52,7 +52,10 @@ export default {
     onScroll() {
       let innerHeight = document.querySelector("#app").clientHeight;
       let outerHeight = document.documentElement.clientHeight;
-      let scrollTop = document.documentElement.scrollTop;
+      let scrollTop =
+        document.documentElement.scrollTop ||
+        document.body.scrollTop ||
+        window.pageYOffset;
       if (innerHeight - outerHeight - 50 < scrollTop) {
         this._ArtistGoodsList();
       }

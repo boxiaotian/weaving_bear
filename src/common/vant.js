@@ -11,7 +11,7 @@ import {
   Stepper,
   Uploader
 } from "vant";
-import { Dialog, DropdownMenu, DropdownItem, Overlay } from "vant";
+import { Dialog, DropdownMenu, DropdownItem, Overlay, Toast } from "vant";
 import { Collapse, CollapseItem, Step, Steps, Swipe, SwipeItem } from "vant";
 import { Grid, GridItem, NavBar, Tab, Tabs } from "vant";
 import {
@@ -42,7 +42,8 @@ Vue.use(Checkbox)
 Vue.use(Dialog)
   .use(DropdownMenu)
   .use(DropdownItem)
-  .use(Overlay);
+  .use(Overlay)
+  .use(Toast);
 // 展示组件
 Vue.use(Collapse)
   .use(CollapseItem)

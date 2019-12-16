@@ -1,17 +1,28 @@
 <template>
   <div class="my_address">
     <return-btn @onClickReturn="onClickReturn" />
-    <div class="my_address_item" v-for="item in 10" :key="item">
+    <div
+      class="my_address_item"
+      v-for="item in address_list"
+      :key="item.id"
+      @click="onSwathAddress(item.id)"
+    >
       <div class="my_address_item_content">
         <div>
-          张三<span>18274862815</span
-          ><span class="default" v-show="item == 1">默认</span>
+          {{ item.name }}<span>{{ item.mobile }}</span
+          ><span class="default" v-show="item.isdefault">默认</span>
         </div>
-        <p>浙江省杭州市西湖区文三路138号东方通信大厦7楼501室</p>
+        <p>{{ item.province + item.city + item.county + item.address }}</p>
       </div>
       <div>
-        <img @click="onEditAddress(item)" src="~assets/img/icon/bianji.png" />
-        <img @click="onDeleteAddress(item)" src="~assets/img/icon/cha.png" />
+        <img
+          @click.stop="onEditAddress(item)"
+          src="~assets/img/icon/bianji.png"
+        />
+        <img
+          @click.stop="onDeleteAddress(item.id)"
+          src="~assets/img/icon/cha.png"
+        />
       </div>
     </div>
     <van-button
@@ -27,7 +38,7 @@
       safe-area-inset-bottom
       position="bottom"
     >
-      <h6>新增地址</h6>
+      <h6>{{ address_title }}</h6>
       <van-address-edit
         :area-list="areaList"
         :address-info="address_info"
@@ -43,47 +54,149 @@
 <script>
 import areaList from "common/area";
 import { ReturnBtn } from "components/index";
+import {
+  AddAddress,
+  AddressList,
+  EditAddress,
+  DeleteAddress
+} from "network/address";
 export default {
   data() {
     return {
+      address_list: [],
+      isrequest: true,
+      page: 1,
       show_address: false,
       areaList,
-      address_info: {
-        id: 1,
-        name: "张三",
-        tel: "18274862815",
-        province: "江西省",
-        city: "萍乡市",
-        county: "安源区",
-        areaCode: "360302",
-        addressDetail: "东大街迎风巷",
-        isDefault: true
-      }
+      address_title: "新增地址",
+      address_info: {},
+      clearget_timer: null // 清除定时器
     };
   },
   methods: {
+    // 返回上一页
     onClickReturn() {
-      this.$router.replace("/profile");
+      this.$router.back(-1);
     },
-    onEditAddress() {
+    // 切换收货地址
+    onSwathAddress(addressid) {
+      this.$router.replace({
+        path:
+          this.$route.query.type == "shopping"
+            ? "/shoppingCartOrder"
+            : "/submitOrder",
+        query: { addressid }
+      });
+    },
+    // 新增收货地址
+    onNewAddress() {
+      this.address_title = "新增地址";
+      this.address_info = {};
       this.show_address = !this.show_address;
     },
-    onDeleteAddress() {
+    // 修改收货地址
+    onEditAddress(obj) {
+      this.address_title = "编辑地址";
+      var county_arr = Object.entries(areaList.county_list);
+      county_arr.map(item => {
+        if (obj.county == item[1]) {
+          this.address_info = {
+            id: obj.id,
+            name: obj.name,
+            tel: obj.mobile,
+            province: obj.province,
+            city: obj.city,
+            county: obj.county,
+            areaCode: item[0],
+            addressDetail: obj.address,
+            isDefault: obj.isdefault ? true : false
+          };
+        }
+      });
+      this.show_address = !this.show_address;
+    },
+    // 删除4收货地址
+    onDeleteAddress(id) {
       this.$dialog
         .confirm({
           title: "您确定删除该地址吗？",
           confirmButtonColor: "#ff7301"
         })
-        .then(() => {
-          // on confirm
-        });
+        .then(() => this._DeleteAddress(id))
+        .catch(() => {});
     },
     onSave(value) {
-      console.log(value);
-    },
-    onNewAddress() {
       this.show_address = !this.show_address;
+      let params = {
+        id: value.id,
+        name: value.name,
+        province: value.province,
+        city: value.city,
+        county: value.county,
+        mobile: value.tel,
+        address: value.addressDetail,
+        isdefault: value.isDefault ? 1 : 0
+      };
+      if (this.address_title == "新增地址") this._AddAddress(params);
+      else this._EditAddress(params);
+    },
+    // 网络请求
+    _AddressList() {
+      if (this.isrequest) {
+        AddressList(this.page++).then(res => {
+          if (res.list.length == 10) this.isrequest = true;
+          else this.isrequest = false;
+          this.address_list = this.address_list.concat(res.list);
+        });
+      }
+    },
+    _AddAddress(params) {
+      AddAddress(params).then(() => {
+        this.address_list = [];
+        this.page = 1;
+        this.isrequest = true;
+        this._AddressList();
+      });
+    },
+    _EditAddress(params) {
+      EditAddress(params).then(() => {
+        this.address_list = [];
+        this.page = 1;
+        this.isrequest = true;
+        this._AddressList();
+      });
+    },
+    _DeleteAddress(id) {
+      DeleteAddress(id).then(() => {
+        this.$toast("删除成功");
+        this.clearget_timer = setTimeout(() => {
+          this.address_list = [];
+          this.page = 1;
+          this.isrequest = true;
+          this._AddressList();
+        }, 1000);
+      });
+    },
+    // 可滚动容器的高度
+    onScroll() {
+      let innerHeight = document.querySelector("#app").clientHeight;
+      let outerHeight = document.documentElement.clientHeight;
+      let scrollTop =
+        document.documentElement.scrollTop ||
+        document.body.scrollTop ||
+        window.pageYOffset;
+      if (innerHeight - outerHeight - 50 < scrollTop) {
+        this._AddressList();
+      }
     }
+  },
+  created() {
+    this._AddressList();
+    window.addEventListener("scroll", this.onScroll);
+  },
+  beforeDestroy() {
+    clearInterval(this.clearget_timer);
+    this.clearget_timer = null;
   },
   components: {
     ReturnBtn
@@ -142,6 +255,16 @@ export default {
     }
   }
 }
+.van-picker {
+  width: 100%;
+  height: 817px;
+  .van-picker__toolbar {
+    .van-picker__cancel,
+    .van-picker__confirm {
+      color: #ff7301;
+    }
+  }
+}
 </style>
 <style lang="less" scoped>
 .my_address {
@@ -173,7 +296,7 @@ export default {
           display: inline-block;
           width: 80px;
           height: 30px;
-          background: rgba(255, 168, 104, 1);
+          background: #ffa868;
           border-radius: 15px;
           font-size: 18px;
           line-height: 34px;

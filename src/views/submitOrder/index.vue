@@ -1,17 +1,22 @@
 <template>
   <div class="submit_order">
     <return-btn @onClickReturn="onClickReturn" />
-    <div class="receipt_info">
+    <router-link to="/myAddress" tag="div" class="receipt_info">
       <img class="address" src="@/assets/img/icon/address.png" />
-      <div v-if="order_info.address && order_info.address.length">
-        <h6 class="receipt_info_name">张三</h6>
+      <div v-if="address_info && Object.keys(address_info).length">
+        <h6 class="receipt_info_name">{{ address_info.name }}</h6>
         <p class="receipt_info_address">
-          收货地址收货地址收货地址收货地址收货地址收货地址收货地址收货地址收货地址收货地址收货地址
+          {{
+            address_info.province +
+              address_info.city +
+              address_info.county +
+              address_info.address
+          }}
         </p>
       </div>
       <span v-else>请添加收货地址</span>
       <img class="arrow_r" src="@/assets/img/icon/arrow_r.png" />
-    </div>
+    </router-link>
     <div class="order_item_group">
       <div class="order_item">
         <div class="order_number">
@@ -57,7 +62,7 @@
       <div>合计：</div>
       <div class="submit_order_total">
         ¥<span
-          >{{ parseFloat(order_info.orderprice) + freight }}
+          >{{ parseFloat(order_info.orderprice) + parseFloat(freight) }}
           <i>含运费:{{ freight }}</i></span
         >
       </div>
@@ -67,47 +72,42 @@
 </template>
 
 <script>
+import { onBridgeReady } from "common/utils";
 import { ReturnBtn } from "components/index";
+import { AddressDetail, GetFreight } from "network/address";
 import { ArtistGoodsOver, ArtistAddOrder } from "network/artist";
 import { CustomGoodsOver, CustomAddOrder } from "network/customize";
 import { GoodsOver, AddOrder } from "network/share";
 export default {
   data() {
     return {
-      order_info: {},
+      order_info: {}, // 订单信息
+      address_info: {}, // 地址信息
       freight: ""
     };
   },
   methods: {
+    // 返回上一页
     onClickReturn() {
-      this.$router.go(-1);
+      this.$router.back(-1);
     },
+    // 提交订单
     onSubmitOrder() {
-      if (this.$route.query.type == "share") {
-        let params = {
-          ...JSON.parse(this.$route.query.data),
-          addressid: 1,
-          freight: this.freight,
-          orderprice: parseFloat(this.order_info.orderprice) + this.freight
-        };
-        console.log(params);
-      } else if (this.$route.query.type == "customize") {
-        let params = {
-          id: this.$route.query.id,
-          num: this.$route.query.num,
-          addressid: 1,
-          freight: this.freight,
-          orderprice: parseFloat(this.order_info.orderprice) + this.freight
-        };
-        console.log(params);
+      let { data, type, id, num } = this.$store.state.submit_info;
+      let orderprice =
+        parseFloat(this.order_info.orderprice) + parseFloat(this.freight);
+      let addressid = this.$route.query.addressid
+        ? this.$route.query.addressid
+        : this.address_info.id;
+      if (type == "share") {
+        let params = { freight: this.freight, ...data, addressid, orderprice };
+        this._AddOrder(params);
+      } else if (type == "customize") {
+        let params = { freight: this.freight, id, num, addressid, orderprice };
+        this._CustomAddOrder(params);
       } else {
-        let params = {
-          ...JSON.parse(this.$route.query.data),
-          addressid: 1,
-          freight: this.freight,
-          orderprice: parseFloat(this.order_info.orderprice) + this.freight
-        };
-        console.log(params);
+        let params = { freight: this.freight, ...data, addressid, orderprice };
+        this._ArtistAddOrder(params);
       }
 
       // this.$router.push("/paySuccess");
@@ -115,45 +115,111 @@ export default {
     // 网络请求
     // 定制的请求
     _CustomGoodsOver() {
-      let { id, num } = this.$route.query;
+      let { id, num } = this.$store.state.submit_info;
       CustomGoodsOver(id, num).then(res => {
         this.order_info = res.info;
-        this.freight = res.info.freight ? res.info.freight : "0.00";
+        // 是否去选择了收货地址
+        if (this.$route.query.addressid) {
+          this._AddressDetail(this.$route.query.addressid);
+          this._GetFreight(this.$route.query.addressid);
+        } else {
+          if (Object.keys(res.info.address).length) {
+            this.address_info = res.info.address;
+            this._GetFreight(res.info.address.id);
+          } else {
+            this.address_info = {};
+            this.freight = res.info.freight ? res.info.freight : "0.00";
+          }
+        }
       });
     },
-    _CustomAddOrder() {
-      CustomAddOrder().then(res => {
-        console.log(res);
+    _CustomAddOrder(params) {
+      CustomAddOrder(params).then(res => {
+        onBridgeReady(res.params).then(res_pay => {
+          if (res_pay.err_msg == "get_brand_wcpay_request:ok") {
+            this.$router.replace({
+              path: "/paySuccess",
+              query: { paysn: res.paysn }
+            });
+          }
+        });
       });
     },
     // 分享的请求
     _ShareGoodsOver() {
-      GoodsOver(JSON.parse(this.$route.query.data)).then(res => {
+      GoodsOver(this.$store.state.submit_info.data).then(res => {
         this.order_info = res.info;
-        this.freight = res.info.freight ? res.info.freight : "0.00";
+        // 是否去选择了收货地址
+        if (this.$route.query.addressid) {
+          this._AddressDetail(this.$route.query.addressid);
+          this._GetFreight(this.$route.query.addressid);
+        } else {
+          if (Object.keys(res.info.address).length) {
+            this.address_info = res.info.address;
+            this._GetFreight(res.info.address.id);
+          } else {
+            this.address_info = {};
+            this.freight = res.info.freight ? res.info.freight : "0.00";
+          }
+        }
       });
     },
-    _AddOrder() {
-      AddOrder().then(res => {
-        console.log(res);
+    _AddOrder(params) {
+      AddOrder(params).then(res => {
+        onBridgeReady(res.params).then(res_pay => {
+          if (res_pay.err_msg == "get_brand_wcpay_request:ok") {
+            this.$router.replace({
+              path: "/paySuccess",
+              query: { paysn: res.paysn }
+            });
+          }
+        });
       });
     },
     // 艺术家的请求
     _ArtistGoodsOver() {
-      ArtistGoodsOver(JSON.parse(this.$route.query.data)).then(res => {
+      ArtistGoodsOver(this.$store.state.submit_info.data).then(res => {
         this.order_info = res.info;
-        this.freight = res.info.freight ? res.info.freight : "0.00";
+        // 是否去选择了收货地址
+        if (this.$route.query.addressid) {
+          this._AddressDetail(this.$route.query.addressid);
+          this._GetFreight(this.$route.query.addressid);
+        } else {
+          if (Object.keys(res.info.address).length) {
+            this.address_info = res.info.address;
+            this._GetFreight(res.info.address.id);
+          } else {
+            this.address_info = {};
+            this.freight = res.info.freight ? res.info.freight : "0.00";
+          }
+        }
       });
     },
-    _ArtistAddOrder() {
-      ArtistAddOrder().then(res => {
-        console.log(res);
+    _ArtistAddOrder(params) {
+      ArtistAddOrder(params).then(res => {
+        onBridgeReady(res.params).then(res_pay => {
+          if (res_pay.err_msg == "get_brand_wcpay_request:ok") {
+            this.$router.replace({
+              path: "/paySuccess",
+              query: { paysn: res.paysn }
+            });
+          }
+        });
       });
+    },
+    _AddressDetail(id) {
+      AddressDetail(id).then(res => (this.address_info = res.info));
+    },
+    _GetFreight(addressid) {
+      GetFreight(addressid).then(
+        res => (this.freight = res.freight ? res.freight : "0.00")
+      );
     }
   },
   created() {
-    if (this.$route.query.type == "share") this._ShareGoodsOver();
-    else if (this.$route.query.type == "customize") this._CustomGoodsOver();
+    let { type } = this.$store.state.submit_info;
+    if (type == "share") this._ShareGoodsOver();
+    else if (type == "customize") this._CustomGoodsOver();
     else this._ArtistGoodsOver();
   },
   mounted() {
@@ -189,6 +255,9 @@ export default {
     box-shadow: 0px 0px 40px 0px rgba(0, 0, 0, 0.05);
     border-radius: 18px;
     font-size: 36px;
+    div {
+      flex: 1;
+    }
     .address {
       width: 40px;
       height: 40px;
@@ -256,8 +325,10 @@ export default {
             box-shadow: 0px 0px 40px 0px rgba(0, 0, 0, 0.05);
             border-radius: 18px;
             img {
+              display: block;
               width: auto;
               height: 100%;
+              margin: auto;
             }
           }
           .order_item_title {

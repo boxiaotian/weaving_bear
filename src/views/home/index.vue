@@ -61,6 +61,7 @@
 <script>
 import { ArtistItem, MainTabBar } from "components/index";
 import { Index } from "network/home";
+import { BindAgent } from "network/profile";
 import HomeSwiper from "./swiper";
 export default {
   data() {
@@ -80,10 +81,14 @@ export default {
         this.artist_list = info.artist;
         this.public_welfare_list = info.public;
       });
+    },
+    _BindAgent() {
+      BindAgent(this.$route.query.uid ? this.$route.query.uid : 0);
     }
   },
   created() {
     this._Index();
+    this._BindAgent();
   },
   components: {
     HomeSwiper,

@@ -22,7 +22,7 @@
             <p>{{ share_info.descri }}</p>
           </div>
         </div>
-        <img :src="share_info.qrcode" />
+        <img :src="$store.state.interface_domain + share_info.qrcode" />
       </div>
     </div>
     <van-button
@@ -35,7 +35,7 @@
     />
     <van-overlay :show="show_certificate" @click="show_certificate = false">
       <img :src="share_img" />
-      <div>长按保存图片并分享</div>
+      <div>长按保存该图片，分享给好友或朋友圈</div>
       <van-icon
         class="certificate_box_close"
         name="close"
@@ -62,22 +62,25 @@ export default {
   },
   methods: {
     onClickReturn() {
-      this.$router.push("/shareList");
+      this.$router.push("/iShare");
     },
     onShareNow() {
-      window.pageYOffset = 0;
-      document.documentElement.scrollTop = 0;
-      document.body.scrollTop = 0;
-      html2canvas(document.getElementById("imageWrapper"), {
-        useCORS: true,
-        allowTaint: true,
-        taintTest: false,
-        backgroundColor: "rgba(0,0,0,0)",
-        logging: false
-      }).then(canvas => {
-        let dataURL = canvas.toDataURL("image/png");
-        this._ImagesUpload(dataURL);
-      });
+      if (this.share_img) this.show_certificate = true;
+      else {
+        window.pageYOffset = 0;
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+        html2canvas(document.getElementById("imageWrapper"), {
+          useCORS: true,
+          allowTaint: true,
+          taintTest: false,
+          backgroundColor: "rgba(0,0,0,0)",
+          logging: false
+        }).then(canvas => {
+          let dataURL = canvas.toDataURL("image/png");
+          this._ImagesUpload(dataURL);
+        });
+      }
     },
     // 网络请求
     _ShareInfo() {
@@ -127,9 +130,10 @@ export default {
       font-weight: 700;
     }
     .share_drawing {
-      width: 100%;
+      display: block;
+      max-width: 100%;
       height: auto;
-      margin-top: 68px;
+      margin: 68px auto 0;
     }
     .works_group {
       display: flex;

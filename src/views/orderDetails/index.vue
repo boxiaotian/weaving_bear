@@ -3,8 +3,9 @@
     <return-btn @onClickReturn="onClickReturn" />
     <div class="order_details_top">
       <div>
-        <span>已发货</span>
+        <span>{{ orderStatus(order_details.status) }}</span>
         <van-button
+          v-if="order_details.status == 2 || order_details.status == 3"
           type="primary"
           size="mini"
           text="查看物流 >"
@@ -17,8 +18,14 @@
       <img src="~assets/img/order/order_car.png" />
     </div>
     <div class="order_details_address">
-      <h6>张三 <span>18256265652</span></h6>
-      <p>浙江省杭州市西湖区文三路138号</p>
+      <h6>
+        {{ order_details.name }} <span>{{ order_details.mobile }}</span>
+      </h6>
+      <p>
+        {{
+          order_details.address && order_details.address.replace(/，/g, "  ")
+        }}
+      </p>
     </div>
     <div class="order_details_commodity">
       <div class="order_details_commodity_top">
@@ -26,23 +33,35 @@
           <img src="~assets/img/customize/phone_case_big.png" />
         </div>
         <div class="order_details_commodity_content">
-          <h6>定制手机壳</h6>
-          <p>高清彩印 来图定制</p>
+          <h6>
+            {{
+              order_details.cname
+                ? order_details.cname + "手机壳"
+                : order_details.gtitle
+            }}
+          </h6>
+          <p>{{ order_details.gdescri }}</p>
+          <span>规格:{{ order_details.specitemname }}</span>
         </div>
         <div>
-          <div class="order_details_commodity_price">¥1000.00</div>
+          <div class="order_details_commodity_price">
+            ¥{{ order_details.specitemprice }}
+          </div>
           <div class="order_details_commodity_number">x1</div>
         </div>
       </div>
       <div class="order_details_commodity_bottom">
         <div>
-          <span style="color:#999999">共1件</span>
-          <span>小计：<b>28.88元</b></span>
+          <span style="color:#999999">共{{ order_details.num }}件</span>
+          <span
+            >小计：<b>{{ order_details.goodsprice }}元</b></span
+          >
         </div>
         <van-button
+          v-if="order_details.status == 1"
           type="primary"
           size="mini"
-          text="申请退货"
+          text="立即付款"
           color="#1b1b1b"
           plain
           round
@@ -51,9 +70,21 @@
     </div>
     <div class="order_details_info">
       <van-cell-group title="订单详情" :border="false">
-        <van-cell title="订单编号" value="YD4524586YD4524586" :border="false" />
-        <van-cell title="下单时间" value="2019.08.13   15:51" :border="false" />
-        <van-cell title="订单状态" value="已发货" :border="false" />
+        <van-cell
+          title="订单编号"
+          :value="order_details.ordersn"
+          :border="false"
+        />
+        <van-cell
+          title="下单时间"
+          :value="order_details.createtime"
+          :border="false"
+        />
+        <van-cell
+          title="订单状态"
+          :value="orderStatus(order_details.status)"
+          :border="false"
+        />
       </van-cell-group>
     </div>
     <div class="order_details_certificate">
@@ -73,14 +104,38 @@
 
 <script>
 import { ReturnBtn } from "components/index";
+import { OrderDetail } from "network/profile";
 export default {
+  data() {
+    return {
+      order_details: {}
+    };
+  },
   methods: {
     onClickReturn() {
-      this.$router.replace("/profile");
+      this.$router.replace("/myOrder");
     },
     onViewLogistics() {
       this.$router.push("/viewLogistics");
+    },
+    // 订单状态
+    orderStatus(status) {
+      let status_text;
+      if (status == 1) status_text = "待付款";
+      else if (status == 2) status_text = "待发货";
+      else if (status == 3) status_text = "已发货";
+      else if (status == 4) status_text = "已完成";
+      return status_text;
+    },
+    // 网络请求
+    _OrderDetail() {
+      OrderDetail(this.$route.query.id).then(
+        res => (this.order_details = res.info)
+      );
     }
+  },
+  created() {
+    this._OrderDetail();
   },
   components: {
     ReturnBtn
@@ -142,7 +197,7 @@ export default {
     flex-direction: column;
     justify-content: space-between;
     width: 100%;
-    height: 326px;
+    min-height: 300px;
     padding: 34px 30px;
     margin-bottom: 20px;
     background-color: #ffffff;
@@ -169,6 +224,14 @@ export default {
         height: 100%;
         font-size: 30px;
         p {
+          font-size: 24px;
+          color: #999999;
+        }
+        span {
+          display: inline-block;
+          padding: 5px 20px;
+          background-color: #f6f6f6;
+          border-radius: 6px;
           font-size: 24px;
           color: #999999;
         }

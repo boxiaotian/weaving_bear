@@ -42,11 +42,13 @@ export default {
   created() {
     GetMyVipInfo().then(res => {
       if (res.info.isvip) this.info = res.info;
-      else this.$toast("您不是VIP用户");
-      this.clearget_timer = setTimeout(
-        () => this.$router.replace("/vipService"),
-        1000
-      );
+      else {
+        this.$toast("您不是VIP用户");
+        this.clearget_timer = setTimeout(
+          () => this.$router.replace("/vipService"),
+          1000
+        );
+      }
     });
   },
   mounted() {

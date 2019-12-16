@@ -8,25 +8,30 @@
     />
     <van-checkbox-group
       v-model="cart"
+      @change="onCheckbox"
       ref="checkboxGroup"
       checked-color="#ff7301"
     >
       <van-checkbox
         class="commodity_item"
-        v-for="item in 3"
-        :key="item"
-        :name="item"
+        v-for="item in cart_list"
+        :key="item.id"
+        :name="item.id"
+        @click="onCheckboxGoods(item.id, item.isselected)"
       >
         <div class="commodity_item_content">
           <div class="commodity_item_img_group">
-            <img src="~assets/img/customize/phone_case_big.png" />
+            <img :src="$store.state.interface_domain + item.thumb" />
           </div>
           <div>
-            <h6>定制手机壳</h6>
-            <div class="commodity_item_synopsis">高清彩印 来图定制</div>
-            <div>￥28.88</div>
+            <h6>{{ item.title }}</h6>
+            <div class="commodity_item_synopsis">{{ item.descri }}</div>
+            <div>
+              <span>规格:{{ item.specitemname }}</span>
+              <span>￥{{ item.specitemprice }}</span>
+            </div>
           </div>
-          <div class="commodity_item_number">x{{ item }}0</div>
+          <div class="commodity_item_number">x{{ item.num }}</div>
         </div>
       </van-checkbox>
     </van-checkbox-group>
@@ -37,14 +42,16 @@
         @click="onSelectAll"
         >全选</van-checkbox
       >
-      <!-- <span v-show="isdelete">删除</span> -->
       <div class="shopping_cart_footer_right">
         <div class="free_shipping">不含运费</div>
-        <div class="shopping_cart_total">合计：<span>¥1000.00</span></div>
+        <div class="shopping_cart_total">
+          合计：<span>¥{{ allmoney }}</span>
+        </div>
         <van-button
           type="primary"
           color="#ff7301"
-          :text="'结算(' + 1 + ')'"
+          @click="onSettlement"
+          :text="'结算(' + cart.length + ')'"
           round
         />
       </div>
@@ -54,24 +61,118 @@
 
 <script>
 import { ReturnBtn } from "components/index";
+import { MyCartList, DeleteCart, ChangeSelected } from "network/profile";
 export default {
   data() {
     return {
-      cart: [],
-      select_all: false,
-      isdelete: false
+      cart_list: [], // 购物车列表
+      cart: [], // 选择的商品
+      isrequest: true,
+      page: 1,
+      select_all: true,
+      allmoney: "0.00" //  选中的总价格
     };
   },
   methods: {
+    // 返回上一页
     onClickReturn() {
-      this.$router.replace("/profile");
+      this.$router.back();
     },
+    // 是否选中
+    onCheckboxGoods(ids, isselected) {
+      this._ChangeSelected({
+        all: 0,
+        ids,
+        isselected: isselected == 1 ? 0 : 1
+      });
+    },
+    // 删除选中的商品
     onManagement() {
-      this.isdelete = !this.isdelete;
+      if (this.cart.length) {
+        let ids = "";
+        this.cart.map(item => (ids += item + ","));
+        if (ids.length > 0) ids = ids.substr(0, ids.length - 1);
+        this.$dialog
+          .confirm({
+            title: "您确定删除选中的商品吗？",
+            confirmButtonColor: "#ff7301"
+          })
+          .then(() => this._DeleteCart(ids))
+          .catch(() => {});
+      } else this.$toast("请选择您要删除的商品");
+    },
+    // 单选
+    onCheckbox() {
+      let ids = "";
+      this.cart.map(item => (ids += item + ","));
+      if (ids.length > 0) ids = ids.substr(0, ids.length - 1);
+      console.log(1);
+
+      // this._ChangeSelected(ids);
     },
     onSelectAll() {
+      let ids = "";
+      this.cart.map(item => (ids += item + ","));
+      if (ids.length > 0) ids = ids.substr(0, ids.length - 1);
       this.$refs.checkboxGroup.toggleAll(!this.select_all);
+      this._ChangeSelected({ all: this.select_all ? 2 : 1 });
+    },
+    // 结算
+    onSettlement() {
+      this.$router.push("/shoppingCartOrder");
+    },
+    // 网络请求
+    _MyCartList() {
+      if (this.isrequest) {
+        MyCartList(this.page++).then(res => {
+          if (res.list.length == 10) this.isrequest = true;
+          else this.isrequest = false;
+          this.allmoney = res.allmoney;
+          res.list.map(item => {
+            if (!item.isselected) this.select_all = false;
+            if (item.isselected) this.cart.push(item.id);
+          });
+          this.cart_list = this.cart_list.concat(res.list);
+        });
+      }
+    },
+    _DeleteCart(ids) {
+      DeleteCart(ids).then(() => {
+        this.cart_list = [];
+        this.cart = [];
+        this.select_all = true;
+        this.page = 1;
+        this.isrequest = true;
+        this._MyCartList();
+      });
+    },
+    _ChangeSelected(params) {
+      ChangeSelected(params).then(res => {
+        console.log(res);
+        this.cart_list = [];
+        this.cart = [];
+        this.select_all = true;
+        this.page = 1;
+        this.isrequest = true;
+        this._MyCartList();
+      });
+    },
+    // 可滚动容器的高度
+    onScroll() {
+      let innerHeight = document.querySelector("#app").clientHeight;
+      let outerHeight = document.documentElement.clientHeight;
+      let scrollTop =
+        document.documentElement.scrollTop ||
+        document.body.scrollTop ||
+        window.pageYOffset;
+      if (innerHeight - outerHeight - 50 < scrollTop) {
+        this._MyCartList();
+      }
     }
+  },
+  created() {
+    this._MyCartList();
+    window.addEventListener("scroll", this.onScroll);
   },
   mounted() {
     if (window.history && window.history.pushState) {
@@ -158,6 +259,18 @@ export default {
           line-height: 30px;
           & > div:nth-child(2) {
             width: 65%;
+            span:nth-child(1) {
+              float: left;
+              padding: 5px 20px;
+              background-color: #f6f6f6;
+              border-radius: 6px;
+              font-size: 24px;
+              color: #999999;
+            }
+            span:nth-child(2) {
+              float: right;
+              margin-right: -40px;
+            }
           }
           .commodity_item_img_group {
             width: 120px;

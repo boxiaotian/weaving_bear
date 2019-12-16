@@ -40,7 +40,10 @@ export default {
     onScroll() {
       let innerHeight = document.querySelector("#app").clientHeight;
       let outerHeight = document.documentElement.clientHeight;
-      let scrollTop = document.documentElement.scrollTop;
+      let scrollTop =
+        document.documentElement.scrollTop ||
+        document.body.scrollTop ||
+        window.pageYOffset;
       if (innerHeight - outerHeight - 50 < scrollTop) {
         this._PublicPoolList();
       }

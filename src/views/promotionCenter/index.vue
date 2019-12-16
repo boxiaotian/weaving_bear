@@ -2,37 +2,39 @@
   <div class="promotion_center">
     <return-btn @onClickReturn="onClickReturn" />
     <div class="promotion_center_top">
-      <img class="promotion_user_img" src="~assets/img/home/artist_three.png" />
-      <div class="promotion_user_name">宅在家里的旅行家</div>
-      <div class="promotion_user_mark">公益大使</div>
+      <img class="promotion_user_img" :src="promotion_info.avatar" />
+      <div class="promotion_user_name">{{ promotion_info.nickname }}</div>
+      <div class="promotion_user_mark">
+        {{ promotion_info.isrecommend ? "公益大使" : "普通用户" }}
+      </div>
     </div>
     <div class="promotion_center_content">
       <div class="promotion_center_item" @click="onMyTeam">
         <img src="~assets/img/profile/team.png" />
         <div>
           <h6>我的团队</h6>
-          <span>0人</span>
+          <span>{{ promotion_info.child }}人</span>
         </div>
       </div>
       <div class="promotion_center_item" @click="onPromotionOrder">
         <img src="~assets/img/profile/order.png" />
         <div>
           <h6>推广订单</h6>
-          <span>0笔</span>
+          <span>{{ promotion_info.order }}笔</span>
         </div>
       </div>
       <div class="promotion_center_item" @click="onPromotionReward">
         <img src="~assets/img/profile/copper_coins.png" />
         <div>
           <h6>推广奖励</h6>
-          <span>0元</span>
+          <span>{{ promotion_info.commission }}元</span>
         </div>
       </div>
       <div class="promotion_center_item" @click="onWithdrawRecord">
         <img src="~assets/img/profile/wallet.png" />
         <div>
           <h6>提现明细</h6>
-          <span>0笔</span>
+          <span>{{ promotion_info.withdraw }}笔</span>
         </div>
       </div>
     </div>
@@ -46,7 +48,13 @@
 
 <script>
 import { ReturnBtn } from "components/index";
+import { PromotionCenter } from "network/profile";
 export default {
+  data() {
+    return {
+      promotion_info: {}
+    };
+  },
   methods: {
     onClickReturn() {
       this.$router.replace("/profile");
@@ -65,7 +73,14 @@ export default {
     },
     onIWantPromotion() {
       this.$router.push("/iWantPromotion");
+    },
+    // 网络请求
+    _PromotionCenter() {
+      PromotionCenter().then(res => (this.promotion_info = res.info));
     }
+  },
+  created() {
+    this._PromotionCenter();
   },
   mounted() {
     if (window.history && window.history.pushState) {

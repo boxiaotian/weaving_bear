@@ -2,22 +2,42 @@
   <div class="my_team">
     <return-btn @onClickReturn="onClickReturn" />
     <div class="my_team_grade">
-      <span :class="{ active: grade_active }" @click="grade_active = true"
+      <span :class="{ active: grade_active }" @click="onSwitch(true)"
         >一级会员</span
       >
-      <span :class="{ active: !grade_active }" @click="grade_active = false"
+      <span :class="{ active: !grade_active }" @click="onSwitch(false)"
         >二级会员</span
       >
     </div>
     <div class="placeholder"></div>
-    <div class="my_team_item" v-for="item in 6" :key="item">
-      <img src="~assets/img/home/artist_three.png" />
+    <div class="my_team_item" v-for="item in my_team_list" :key="item.id">
+      <img :src="item.avatar" />
       <div>
         <div class="my_team_item_content">
-          <span class="my_team_name">张三</span>
-          <van-button type="primary" text="普通会员" color="#1b1b1b" round />
+          <span class="my_team_name">{{ item.nickname }}</span>
+          <van-button
+            v-if="item.isvip"
+            type="primary"
+            text="VIP用户"
+            color="#1b1b1b"
+            round
+          />
+          <van-button
+            v-else-if="!item.isvip && item.isrecommend"
+            type="primary"
+            text="推广大使"
+            color="#1b1b1b"
+            round
+          />
+          <van-button
+            v-else
+            type="primary"
+            text="普通会员"
+            color="#1b1b1b"
+            round
+          />
         </div>
-        <span class="my_team_time">2019年6月29日</span>
+        <span class="my_team_time">{{ item.agenttime }}</span>
       </div>
     </div>
   </div>
@@ -25,16 +45,50 @@
 
 <script>
 import { ReturnBtn } from "components/index";
+import { MyAgent1, MyAgent2 } from "network/profile";
 export default {
   data() {
     return {
+      my_team_list: [],
+      isrequest: true,
+      page: 1,
       grade_active: true
     };
   },
   methods: {
     onClickReturn() {
       this.$router.replace("/promotionCenter");
+    },
+    onSwitch(type) {
+      this.grade_active = type;
+      this.my_team_list = [];
+      this.page = 1;
+      this.isrequest = true;
+      if (this.grade_active) this._MyAgent1();
+      else this._MyAgent2();
+    },
+    // 网络请求
+    _MyAgent1() {
+      if (this.isrequest) {
+        MyAgent1(this.page++).then(res => {
+          if (res.list.length == 10) this.isrequest = true;
+          else this.isrequest = false;
+          this.my_team_list = this.my_team_list.concat(res.list);
+        });
+      }
+    },
+    _MyAgent2() {
+      if (this.isrequest) {
+        MyAgent2(this.page++).then(res => {
+          if (res.list.length == 10) this.isrequest = true;
+          else this.isrequest = false;
+          this.my_team_list = this.my_team_list.concat(res.list);
+        });
+      }
     }
+  },
+  created() {
+    this._MyAgent1();
   },
   mounted() {
     if (window.history && window.history.pushState) {

@@ -1,6 +1,9 @@
 import Vue from "vue";
 import VueRouter from "vue-router";
 import { setCookie, getCookie } from "@/common/cookie";
+import { setStore, getStore, removeStore } from "@/common/localstorage";
+import store from "../store";
+import { getUrlKey } from "common/utils";
 
 Vue.use(VueRouter);
 Vue.prototype.$cookieStore = { setCookie, getCookie };
@@ -8,10 +11,10 @@ Vue.prototype.$cookieStore = { setCookie, getCookie };
 const Home = () => import("@/views/home/index");
 const Profile = () => import("@/views/profile/index");
 
-const CustomizeList = () => import("@/views/customizeList/index"); // 选择商品定制
+const CustomizeList = () => import("@/views/customizeList/index"); // 选择定制商品
 const Model = () => import("@/views/model/index"); // 选择机型
-const Customize = () => import("@/views/customize/index"); // 制作商品
-const ProductDetails = () => import("@/views/productDetails/index"); // 商品详情
+const Customize = () => import("@/views/customize/index"); // 定制商品
+const CustomizeDetails = () => import("../views/customizeDetails/index"); // 商品详情
 const SubmitOrder = () => import("@/views/submitOrder/index"); // 提交订单
 const PaySuccess = () => import("@/views/paySuccess/index"); // 支付成功
 
@@ -20,9 +23,11 @@ const ShareList = () => import("@/views/shareList/index"); // 分享的商品
 const Edit = () => import("@/views/edit/index"); // 编辑
 const Share = () => import("@/views/share/index"); // 分享
 const ShareGenerate = () => import("@/views/shareGenerate/index"); // 分享进入页面
+const ShareDetails = () => import("@/views/shareDetails/index"); // 分享详情
 
 const Artist = () => import("@/views/artist/index"); // 艺术家
 const ArtistWorks = () => import("@/views/artistWorks/index"); // 艺术家作品
+const ArtistDetails = () => import("@/views/artistDetails/index"); // 艺术家商品详情
 
 const CharityPool = () => import("@/views/charityPool/index"); // 公益池
 const Foundation = () => import("@/views/foundation/index"); // 公益详情
@@ -36,6 +41,7 @@ const WorksIncome = () => import("@/views/worksIncome/index"); // 作品收入
 
 const MyCertificate = () => import("@/views/myCertificate/index"); // 我的证书
 const ShoppingCart = () => import("@/views/shoppingCart/index"); // 购物车
+const ShoppingCartOrder = () => import("@/views/shoppingCartOrder/index"); // 提交订单
 
 const VipService = () => import("@/views/vipService/index"); // 购买VIP服务
 const VipServiceInfo = () => import("@/views/vipServiceInfo/index"); // VIP服务
@@ -95,20 +101,20 @@ const routes = [
     component: Model
   },
   {
-    path: "/customize/:type",
+    path: "/customize",
     name: "customize",
     meta: {
-      title: "选择商品定制"
+      title: "定制商品"
     },
     component: Customize
   },
   {
-    path: "/productDetails",
-    name: "productDetails",
+    path: "/customizeDetails",
+    name: "customizeDetails",
     meta: {
-      title: "商品详情"
+      title: "定制商品详情"
     },
-    component: ProductDetails
+    component: CustomizeDetails
   },
   {
     path: "/submitOrder",
@@ -140,7 +146,7 @@ const routes = [
     component: ShareList
   },
   {
-    path: "/edit/:type",
+    path: "/edit",
     name: "edit",
     meta: {
       title: "编辑商品"
@@ -164,6 +170,14 @@ const routes = [
     component: ShareGenerate
   },
   {
+    path: "/shareDetails",
+    name: "shareDetails",
+    meta: {
+      title: "分享详情"
+    },
+    component: ShareDetails
+  },
+  {
     path: "/artist",
     name: "artist",
     meta: {
@@ -178,6 +192,14 @@ const routes = [
       title: "艺术家"
     },
     component: ArtistWorks
+  },
+  {
+    path: "/artistDetails",
+    name: "artistDetails",
+    meta: {
+      title: "商品详情"
+    },
+    component: ArtistDetails
   },
   {
     path: "/charityPool",
@@ -255,6 +277,14 @@ const routes = [
       title: "购物车"
     },
     component: ShoppingCart
+  },
+  {
+    path: "/shoppingCartOrder",
+    name: "shoppingCartOrder",
+    meta: {
+      title: "购物车订单"
+    },
+    component: ShoppingCartOrder
   },
   {
     path: "/vipService",
@@ -387,15 +417,32 @@ const router = new VueRouter({
 
 // 前置守卫(guard)
 router.beforeEach((to, from, next) => {
+  store.commit("uniacId", getUrlKey("uniacid") ? getUrlKey("uniacid") : 0);
   if (
     process.env.NODE_ENV != "development" &&
-    (to.name == "productDetails" || to.name == "profile")
+    (to.name == "home" ||
+      to.name == "customizeDetails" ||
+      to.name == "shareDetails" ||
+      to.name == "artistDetails" ||
+      to.name == "profile")
   ) {
     if (getCookie("zbx_user")) {
-      console.log(getCookie("zbx_user"));
+      let zbx_user = getCookie("zbx_user");
+      if (getCookie("zbx_user").startsWith("think:"))
+        store.commit("zbxUser", JSON.parse(zbx_user.slice(6)));
+      else store.commit("zbxUser", JSON.parse(zbx_user));
     } else {
       window.location.href = "/index/index/getWechatAuth";
-      setCookie("zbx_history_url", "http://zbx.yuncshop.com/static/" + to.name);
+      setStore("zbx_history_url", window.location.href);
+    }
+    if (process.env.NODE_ENV != "development" && to.name == "home") {
+      if (
+        getStore("zbx_history_url") != null &&
+        window.location.href != getStore("zbx_history_url")
+      ) {
+        window.location.href = getStore("zbx_history_url");
+        removeStore("zbx_history_url");
+      }
     }
   }
   switch (to.name) {
@@ -411,7 +458,9 @@ router.beforeEach((to, from, next) => {
       document.getElementsByTagName("html")[0].style.background = "#eeeeee";
       document.getElementsByTagName("body")[0].style.background = "#eeeeee";
       break;
-    case "productDetails":
+    case "customizeDetails":
+    case "shareDetails":
+    case "artistDetails":
     case "sharingRewards":
     case "vipServiceInfo":
     case "withdrawRecord":

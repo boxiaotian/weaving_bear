@@ -46,6 +46,7 @@
 
 <script>
 import { ReturnBtn } from "components/index";
+import { BindAgent } from "network/profile";
 import { ShareInfo } from "network/share";
 export default {
   data() {
@@ -66,10 +67,14 @@ export default {
       ShareInfo(this.$route.query.sid).then(
         res => (this.share_info = res.info)
       );
+    },
+    _BindAgent() {
+      BindAgent(this.$route.query.uid ? this.$route.query.uid : 0);
     }
   },
   created() {
     this._ShareInfo();
+    this._BindAgent();
   },
   mounted() {
     if (window.history && window.history.pushState) {
