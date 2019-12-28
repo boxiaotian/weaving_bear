@@ -22,5 +22,14 @@
     <div id="app"></div>
     <!-- built files will be auto injected -->
   </body>
+  <script>
+    window.onload = function () {
+      var windowHeight = window.outerHeight
+        ? window.outerHeight * window.dpr
+        : window.innerHeight;
+      var app = document.getElementById("app")
+      app.style.minHeight = (windowHeight / window.rem).toFixed(3) + "rem"
+    }
+  </script>
 
 </html>

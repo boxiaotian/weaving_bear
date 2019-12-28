@@ -26,11 +26,14 @@ export function request(options) {
       .then(res => {
         Toast.clear();
         if (res.code == 1) resolve(res.data);
-        else if (res.msg == "参数错误") router.push("/home");
-        else if (res.msg == "无效数据，请重新授权") {
-          Toast(res.msg);
-          setTimeout(() => router.push("/home"), 1000);
-        } else Toast(res.msg);
+        else if (res.code == -100) {
+          Toast("该账号在别处登录");
+          setTimeout(
+            () => (window.location.href = "/index/index/getWechatAuth"),
+            1000
+          );
+        } else if (res.msg == "参数错误") router.push("/home");
+        else Toast("网络错误，请稍后重试");
       })
       .catch(err => {
         reject(err);

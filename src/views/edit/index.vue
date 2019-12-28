@@ -1,104 +1,77 @@
 <template>
   <div class="edit" :style="{ height: edit_height.toFixed(3) + 'rem' }">
     <return-btn @onClickReturn="onClickReturn" />
+    <div v-if="custom_info.customize_type == 5">
+      <img
+        v-if="ismirror"
+        class="mirror"
+        src="~assets/img/icon/ismirror.png"
+        @click="onMirror"
+      />
+      <img
+        v-else
+        class="mirror"
+        src="~assets/img/icon/mirror.png"
+        @click="onMirror"
+      />
+    </div>
     <img
       class="save"
       src="~assets/img/customize/save_btn.png"
       @click="onSaveEdit"
     />
-    <div class="pillow_front_back" v-if="custom_info.customize_type == 2">
+    <!-- <div class="pillow_front_back" v-if="custom_info.customize_type == 2">
       <div :class="[isfront && 'pillow_front']" @click="onPillowFront">
         正面
       </div>
       <div :class="[isback && 'pillow_back']" @click="onPillowBack">
         反面
       </div>
-    </div>
-    <!-- 定制手机壳 -->
-    <div
-      v-if="custom_info.customize_type == 1"
-      class="phone_case_group"
-      :style="phoneCaseModel"
-      :id="'imageWrapper' + custom_info.customize_type"
-    >
-      <img
-        class="camera"
-        :style="cameraModel"
-        :src="custom_info.camera_thumb"
-      />
-      <img
-        class="fingerprint"
-        :style="fingerprintModel"
-        :src="custom_info.fingerprint_thumb"
-      />
-      <img
-        v-if="uploaded_picture"
-        id="phone_case"
-        :src="uploaded_picture"
-        @touchstart="down"
-        @touchmove="move"
-        @touchend="flags == false"
-      />
-    </div>
-    <!-- 定制抱枕 -->
-    <div
-      class="pillow_group"
-      v-else-if="custom_info.customize_type == 2"
-      :id="'imageWrapper' + custom_info.customize_type"
-    >
-      <img class="model_img" :src="custom_info.thumb" />
-      <div
-        class="pillow_mask"
-        @touchstart="down"
-        @touchmove="move"
-        @touchend="flags == false"
-      ></div>
-      <div>
-        <img v-if="uploaded_picture" id="phone_case" :src="uploaded_picture" />
-      </div>
-    </div>
-    <!-- 定制挎包 -->
-    <div
-      class="shoulder_bag_group"
-      v-else-if="custom_info.customize_type == 3"
-      :id="'imageWrapper' + custom_info.customize_type"
-    >
-      <img class="model_img" :src="custom_info.thumb" />
-      <div
-        class="shoulder_bag_mask"
-        @touchstart="down"
-        @touchmove="move"
-        @touchend="flags == false"
-      ></div>
-      <div>
-        <img v-if="uploaded_picture" id="phone_case" :src="uploaded_picture" />
-      </div>
-    </div>
-    <!-- <div class="edit_group">
-      <img
-        v-if="$route.params.type == 'phone'"
-        src="~assets/img/customize/phone_case_big.png"
-      />
-      <img
-        v-if="$route.params.type == 'cup'"
-        src="~assets/img/customize/cup_big.png"
-      />
-      <img
-        v-if="$route.params.type == 'pillow'"
-        src="~assets/img/customize/pillow_big.png"
-      />
-      <img
-        v-if="$route.params.type == 'satchel'"
-        src="~assets/img/customize/satchel_big.png"
-      />
     </div> -->
+    <!-- 定制手机壳 -->
+    <phone-case
+      v-if="custom_info.customize_type == 1"
+      :custom_info="custom_info"
+      :uploaded_picture="uploaded_picture"
+    />
+    <!-- 定制抱枕 -->
+    <pillow
+      v-else-if="custom_info.customize_type == 2"
+      :custom_info="custom_info"
+      :uploaded_picture="uploaded_picture"
+    />
+    <!-- 定制挎包 -->
+    <shoulder-bag
+      v-else-if="custom_info.customize_type == 3"
+      :custom_info="custom_info"
+      :uploaded_picture="uploaded_picture"
+    />
+    <cup
+      v-else-if="custom_info.customize_type == 4"
+      :custom_info="custom_info"
+      :uploaded_picture="uploaded_picture"
+    />
+    <!-- 定制文具盒 -->
+    <stationery-box
+      v-else-if="custom_info.customize_type == 5"
+      :custom_info="custom_info"
+      :uploaded_picture="uploaded_picture"
+      :ismirror="ismirror"
+    />
     <img v-show="ismaking" class="making" src="~assets/img/making.gif" />
   </div>
 </template>
 
 <script>
 import html2canvas from "html2canvas";
-import { compress } from "common/utils";
+import AlloyFinger from "alloyfinger";
+import PhoneCase from "./editProducts/phoneCase";
+import Pillow from "./editProducts/pillow";
+import ShoulderBag from "./editProducts/shoulderBag";
+import cup from "./editProducts/cup";
+import StationeryBox from "./editProducts/stationeryBox";
+import Transform from "common/transform";
+import { compress, transformProcess } from "common/utils";
 import { ReturnBtn } from "components/index";
 import { ImagesUpload } from "network/home";
 import { ShareInfo } from "network/share";
@@ -110,6 +83,8 @@ export default {
       isfront: true, // 正面
       isback: false, // 反面
       ismaking: false, // 制作动画
+      flags: false, // 是否开启拖到图片
+      ismirror: false, // 是否开启镜像
       uploaded_picture: "", // 推动图片
       clearget_timer: null, // 清除定时器
       position: { x: 0, y: 0 },
@@ -121,46 +96,9 @@ export default {
       yPum: ""
     };
   },
-  computed: {
-    phoneCaseModel: function() {
-      let width = (this.custom_info.width / 2 / 44).toFixed(3);
-      let height = (this.custom_info.height / 2 / 44).toFixed(3);
-      return `width:${width}rem;height:${height}rem`;
-    },
-    cameraModel: function() {
-      let width = (this.custom_info.camera_width / 2 / 44).toFixed(3);
-      let height = (this.custom_info.camera_height / 2 / 44).toFixed(3);
-      let top = (this.custom_info.camera_top / 2 / 44).toFixed(3);
-      let left = (this.custom_info.camera_left / 2 / 44).toFixed(3);
-      return `width:${width}rem;height:${height}rem;top:${top}rem;left:${left}rem`;
-    },
-    fingerprintModel: function() {
-      let width = (this.custom_info.fingerprint_width / 2 / 44).toFixed(3);
-      let height = (this.custom_info.fingerprint_height / 2 / 44).toFixed(3);
-      let top = (this.custom_info.fingerprint_top / 2 / 44).toFixed(3);
-      let left = (this.custom_info.fingerprint_left / 2 / 44).toFixed(3);
-      return `width:${width}rem;height:${height}rem;top:${top}rem;left:${left}rem`;
-    }
-  },
   methods: {
     onClickReturn() {
-      this.$router.push("/shareList");
-    },
-    onSaveEdit() {
-      this.ismaking = !this.ismaking;
-      let imageWrapper = document.getElementById(
-        "imageWrapper" + this.custom_info.customize_type
-      );
-      html2canvas(imageWrapper, {
-        useCORS: true,
-        allowTaint: true,
-        taintTest: false,
-        backgroundColor: "rgba(0,0,0,0)",
-        logging: false
-      }).then(canvas => {
-        let dataURL = canvas.toDataURL("image/png");
-        this._ImagesUpload(dataURL);
-      });
+      this.$router.replace("/shareList");
     },
     // 抱枕正反面
     onPillowFront() {
@@ -171,32 +109,31 @@ export default {
       this.isfront = !this.isfront;
       this.isback = !this.isback;
     },
-    // 触摸上传图片
-    down() {
-      this.flags = true;
-      var touch;
-      if (event.touches) touch = event.touches[0];
-      else touch = event;
-      this.position.x = touch.clientX;
-      this.position.y = touch.clientY;
-      let moveDiv = document.getElementById("phone_case");
-      this.dx = moveDiv.offsetLeft;
-      this.dy = moveDiv.offsetTop;
-    },
-    // 移动上传图片
-    move() {
-      if (this.flags) {
-        var touch;
-        if (event.touches) touch = event.touches[0];
-        else touch = event;
-        this.nx = touch.clientX - this.position.x;
-        this.ny = touch.clientY - this.position.y;
-        this.xPum = this.dx + this.nx;
-        this.yPum = this.dy + this.ny;
-        let moveDiv = document.getElementById("phone_case");
-        moveDiv.style.left = this.xPum + "px";
-        moveDiv.style.top = this.yPum + "px";
+    // 文具盒镜像
+    onMirror() {
+      this.ismirror = !this.ismirror;
+      if (this.ismirror) {
+        this.$toast.loading({
+          duration: 0, // 持续展示 toast
+          forbidClick: true,
+          message: "镜像制作中..."
+        });
+        setTimeout(() => this.$toast.clear(), 1000);
       }
+    },
+    // 保存编辑
+    onSaveEdit() {
+      this.ismaking = !this.ismaking;
+      html2canvas(document.getElementById("imageWrapper"), {
+        useCORS: true,
+        allowTaint: true,
+        taintTest: false,
+        backgroundColor: "rgba(0,0,0,0)",
+        logging: false
+      }).then(canvas => {
+        let dataURL = canvas.toDataURL("image/png");
+        this._ImagesUpload(dataURL);
+      });
     },
     // 网络请求
     _ShareInfo() {
@@ -207,7 +144,7 @@ export default {
       );
     },
     _ImagesUpload(dataURL) {
-      compress(dataURL, 1.5, base64 => {
+      compress(dataURL, base64 => {
         ImagesUpload({ file: base64, type: "share" }).then(res => {
           let { id, gid, name, isextend } = this.custom_info;
           this.$store.commit("shareGoods", {
@@ -220,6 +157,83 @@ export default {
           this.ismaking = !this.ismaking;
         });
       });
+    }
+  },
+  watch: {
+    uploaded_picture: function() {
+      this.$nextTick(function() {
+        var that = this;
+        // 对上传的图片进行手势操作
+        var imageWrapper = document.getElementById("imageWrapper");
+        var pinchRotateImg = document.getElementById("operatingImg");
+        // var pinchRotateImg1 = document.getElementById("operatingImg1");
+        Transform(pinchRotateImg);
+        // if (pinchRotateImg1) Transform(pinchRotateImg1);
+        new AlloyFinger(imageWrapper, {
+          rotate: function(evt) {
+            pinchRotateImg.rotateZ += evt.angle;
+          },
+          multipointStart: function() {
+            that.initScale = pinchRotateImg.scaleX;
+          },
+          pinch: function(evt) {
+            pinchRotateImg.scaleX = pinchRotateImg.scaleY =
+              that.initScale * evt.zoom;
+          },
+          pressMove: function(evt) {
+            pinchRotateImg.translateX += evt.deltaX;
+            pinchRotateImg.translateY += evt.deltaY;
+            evt.preventDefault();
+          }
+        });
+      });
+    },
+    ismirror: function() {
+      var that = this;
+      if (this.uploaded_picture) {
+        this.$nextTick(function() {
+          // 对上传的图片进行手势操作
+          var imageWrapper = document.getElementById("imageWrapper");
+          var pinchRotateImg = document.getElementById("operatingImg");
+          var pinchRotateImg1 = document.getElementById("operatingImg1");
+          Transform(pinchRotateImg);
+          if (this.ismirror && pinchRotateImg1) {
+            pinchRotateImg1.style.transform = transformProcess(pinchRotateImg);
+          }
+          new AlloyFinger(imageWrapper, {
+            rotate: function(evt) {
+              if (!that.ismirror) pinchRotateImg.rotateZ += evt.angle;
+            },
+            multipointStart: function() {
+              that.initScale = pinchRotateImg.scaleX;
+              if (that.ismirror && pinchRotateImg1) {
+                pinchRotateImg1.style.transform = transformProcess(
+                  pinchRotateImg
+                );
+              }
+            },
+            pinch: function(evt) {
+              pinchRotateImg.scaleX = pinchRotateImg.scaleY =
+                that.initScale * evt.zoom;
+              if (that.ismirror) {
+                pinchRotateImg1.style.transform = transformProcess(
+                  pinchRotateImg
+                );
+              }
+            },
+            pressMove: function(evt) {
+              pinchRotateImg.translateX += evt.deltaX;
+              pinchRotateImg.translateY += evt.deltaY;
+              if (that.ismirror && pinchRotateImg1) {
+                pinchRotateImg1.style.transform = transformProcess(
+                  pinchRotateImg
+                );
+              }
+              evt.preventDefault();
+            }
+          });
+        });
+      }
     }
   },
   created() {
@@ -247,7 +261,12 @@ export default {
     window.removeEventListener("popstate", this.onClickReturn, false); //false阻止默认事件
   },
   components: {
-    ReturnBtn
+    ReturnBtn,
+    PhoneCase, // 手机壳
+    Pillow, // 抱枕
+    cup, // 杯子
+    ShoulderBag, // 挎包
+    StationeryBox // 文具盒
   }
 };
 </script>
@@ -308,108 +327,6 @@ export default {
       }
     }
   }
-  .phone_case_group {
-    position: relative;
-    width: 316.5px;
-    height: 652px;
-    background-color: #000000;
-    border-radius: 30px;
-    overflow: hidden;
-    .camera {
-      position: absolute;
-      top: 77px;
-      left: 110.5px;
-      width: 96px;
-      height: 92px;
-      z-index: 1;
-    }
-    .fingerprint {
-      position: absolute;
-      top: 177.5px;
-      left: 133px;
-      width: 51px;
-      height: 51px;
-      z-index: 1;
-    }
-    #phone_case {
-      position: absolute;
-      left: 0;
-      top: 0;
-      width: auto;
-      max-height: 100%;
-      /* z-index: 9; */
-    }
-  }
-  .pillow_group {
-    position: relative;
-    width: 650px;
-    height: 650px;
-    background-repeat: no-repeat;
-    background-size: cover;
-    .model_img {
-      width: 100%;
-      height: 100%;
-    }
-    div {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 650px;
-      height: 650px;
-      overflow: hidden;
-      z-index: 1;
-      img {
-        position: absolute;
-        left: 50px;
-        top: 70px;
-        width: auto;
-        max-height: 100%;
-      }
-    }
-    .pillow_mask {
-      background: url("~assets/img/customize/pillow_mask.png") no-repeat;
-      background-size: cover;
-      z-index: 2;
-    }
-  }
-  .shoulder_bag_group {
-    position: relative;
-    width: 80%;
-    height: 70.54%;
-    background-repeat: no-repeat;
-    background-size: cover;
-    .model_img {
-      width: 100%;
-      height: 100%;
-    }
-    .shoulder_bag_mask {
-      position: absolute;
-      top: 0;
-      right: 0;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: url("~assets/img/customize/satchel_mask.png") no-repeat;
-      background-size: cover;
-      z-index: 2;
-    }
-    div {
-      position: absolute;
-      left: 0;
-      bottom: 0;
-      width: 100%;
-      height: 68.6%;
-      overflow: hidden;
-      img {
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: auto;
-        max-height: 100%;
-      }
-    }
-  }
   .edit_group {
     display: flex;
     flex-direction: column;
@@ -421,6 +338,14 @@ export default {
       width: auto;
       height: 600px;
     }
+  }
+  .mirror {
+    position: fixed;
+    right: 0;
+    bottom: 500px;
+    width: 150px;
+    height: 150px;
+    z-index: 3;
   }
   .save {
     position: fixed;

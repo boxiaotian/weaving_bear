@@ -6,8 +6,19 @@
       :key="item.id"
       :to="{ path: '/foundation', query: { pid: item.id } }"
       class="charity_pool_item"
-      >{{ item.name }}</router-link
+      tag="div"
     >
+      <img
+        class="charity_pool_img"
+        :src="$store.state.interface_domain + item.banner"
+      />
+      <div class="charity_pool_content">
+        <div class="charity_pool_descri">
+          {{ item.descri }}
+        </div>
+        <div class="charity_pool_name">{{ item.name }}</div>
+      </div>
+    </router-link>
   </div>
 </template>
 
@@ -51,13 +62,16 @@ export default {
   },
   created() {
     this._PublicPoolList();
-    window.addEventListener("scroll", this.onScroll);
+    window.onscroll = () => this.onScroll();
   },
   mounted() {
     if (window.history && window.history.pushState) {
       history.pushState(null, null, document.URL);
       window.addEventListener("popstate", this.onClickReturn, false); //false阻止默认事件
     }
+  },
+  beforeDestroy() {
+    window.onscroll = "";
   },
   destroyed() {
     window.removeEventListener("popstate", this.onClickReturn, false); //false阻止默认事件
@@ -72,13 +86,11 @@ export default {
 .charity_pool {
   padding: 30px;
   .charity_pool_item {
-    position: relative;
     display: flex;
-    flex-direction: column;
-    justify-content: space-between;
+    flex-direction: row;
     width: 100%;
-    height: auto;
-    padding: 40px;
+    height: 200px;
+    padding: 40px 30px;
     margin-bottom: 30px;
     background-color: #ffffff;
     box-shadow: 0px 0px 40px 0px rgba(0, 0, 0, 0.05);
@@ -87,16 +99,33 @@ export default {
     line-height: 38px;
     font-weight: 700;
     color: #333333;
-    &::before {
-      content: "";
-      position: absolute;
-      top: 50%;
-      right: 25px;
-      transform: translateY(-35%);
-      width: 10px;
-      height: 18px;
-      background: url("~assets/img/icon/arrow_r.png") no-repeat;
-      background-size: cover;
+    .charity_pool_img {
+      min-width: 120px;
+      height: 120px;
+      margin-right: 26px;
+      background-color: #ffffff;
+      box-shadow: 0px 0px 40px 0px rgba(0, 0, 0, 0.05);
+      border-radius: 18px;
+    }
+    .charity_pool_content {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      .charity_pool_descri {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        word-break: break-all;
+        font-size: 30px;
+        font-weight: bold;
+        color: #333333;
+      }
+      .charity_pool_name {
+        font-size: 24px;
+        color: #ff7301;
+      }
     }
   }
 }

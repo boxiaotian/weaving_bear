@@ -32,25 +32,27 @@ export default {
       return this.$router.push("/home");
     },
     onCustomize(obj) {
-      const { id, thumb, isextend, isdoble, title } = obj;
-      if (isextend)
-        this.$router.push({ path: "/model", query: { id, type: "customize" } });
+      if (obj.isextend)
+        this.$router.push({
+          path: "/model",
+          query: { id: obj.id, type: "customize" }
+        });
       else {
         let customize_type;
-        if (title.includes("壳")) customize_type = 1;
-        else if (title.includes("枕")) customize_type = 2;
-        else if (title.includes("包")) customize_type = 3;
-        else if (title.includes("杯")) customize_type = 4;
-        else if (title.includes("盒")) customize_type = 5;
+        if (obj.title.includes("壳")) customize_type = 1;
+        else if (obj.title.includes("枕")) customize_type = 2;
+        else if (obj.title.includes("包")) customize_type = 3;
+        else if (obj.title.includes("杯")) customize_type = 4;
+        else if (obj.title.includes("盒")) customize_type = 5;
         this.$store.commit("customInfo", {
-          id,
-          isextend,
-          isdoble,
-          customize_type,
-          title,
-          thumb: this.$store.state.interface_domain + thumb
+          id: obj.id,
+          isextend: obj.isextend,
+          isdoble: obj.isdoble,
+          title: obj.title,
+          thumb: obj.thumb,
+          customize_type
         });
-        this.$router.push("/customize");
+        this.$router.replace("/customize");
       }
     },
     // 网络请求
@@ -78,7 +80,10 @@ export default {
   },
   created() {
     this._CustomGoodsList();
-    window.addEventListener("scroll", this.onScroll);
+    window.onscroll = () => this.onScroll();
+  },
+  beforeDestroy() {
+    window.onscroll = "";
   },
   components: {
     ReturnBtn,
@@ -94,6 +99,9 @@ export default {
     display: flex;
     flex-flow: wrap;
     justify-content: space-between;
+    .good_item {
+      height: 400px;
+    }
   }
 }
 </style>

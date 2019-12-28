@@ -14,9 +14,10 @@ const Profile = () => import("@/views/profile/index");
 const CustomizeList = () => import("@/views/customizeList/index"); // 选择定制商品
 const Model = () => import("@/views/model/index"); // 选择机型
 const Customize = () => import("@/views/customize/index"); // 定制商品
-const CustomizeDetails = () => import("../views/customizeDetails/index"); // 商品详情
+const CustomizeDetails = () => import("@/views/customizeDetails/index"); // 商品详情
 const SubmitOrder = () => import("@/views/submitOrder/index"); // 提交订单
 const PaySuccess = () => import("@/views/paySuccess/index"); // 支付成功
+const SingleCharityPool = () => import("@/views/singleCharityPool/index"); // 单选公益池
 
 const IShare = () => import("@/views/iShare/index"); // 分享输入信息
 const ShareList = () => import("@/views/shareList/index"); // 分享的商品
@@ -131,6 +132,14 @@ const routes = [
       title: "支付成功"
     },
     component: PaySuccess
+  },
+  {
+    path: "/singleCharityPool",
+    name: "singleCharityPool",
+    meta: {
+      title: "选择公益"
+    },
+    component: SingleCharityPool
   },
   {
     path: "/iShare",
@@ -455,8 +464,10 @@ router.beforeEach((to, from, next) => {
       else if (to.params.type == "cup") to.meta.title = "情侣变色杯";
       else if (to.params.type == "pillow") to.meta.title = "抱枕";
       else if (to.params.type == "satchel") to.meta.title = "单肩挎包";
-      document.getElementsByTagName("html")[0].style.background = "#eeeeee";
-      document.getElementsByTagName("body")[0].style.background = "#eeeeee";
+      setTimeout(() => {
+        document.getElementsByTagName("html")[0].style.background = "#eeeeee";
+        document.getElementsByTagName("body")[0].style.background = "#eeeeee";
+      }, 200);
       break;
     case "customizeDetails":
     case "shareDetails":

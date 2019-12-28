@@ -64,13 +64,16 @@ export default {
   created() {
     document.title = this.$route.query.name;
     this._ArtistGoodsList();
-    window.addEventListener("scroll", this.onScroll);
+    window.onscroll = () => this.onScroll();
   },
   mounted() {
     if (window.history && window.history.pushState) {
       history.pushState(null, null, document.URL);
       window.addEventListener("popstate", this.onClickReturn, false); //false阻止默认事件
     }
+  },
+  beforeDestroy() {
+    window.onscroll = "";
   },
   destroyed() {
     window.removeEventListener("popstate", this.onClickReturn, false); //false阻止默认事件
@@ -91,7 +94,6 @@ export default {
   .good_item {
     margin: 30px 0;
     .good_price {
-      margin: 30px auto;
       font-size: 36px;
       font-weight: 700;
       color: #ff7024;

@@ -1,12 +1,12 @@
 <template>
   <div class="model">
     <return-btn @onClickReturn="onClickReturn" />
-    <div class="search_group" ref="search">
+    <!-- <div class="search_group" ref="search">
       <div class="search">
         <van-field v-model="search_value" placeholder="输入想要搜索的机型" />
         <img src="~assets/img/icon/search.png" />
       </div>
-    </div>
+    </div> -->
     <div
       class="model_scroll"
       :style="{ height: scroll_height.toFixed(3) + 'rem' }"
@@ -66,7 +66,7 @@ export default {
     },
     // 点击菜单
     onMenuClick(index) {
-      this.$refs.goodList.scrollTop = this.heightList[index] + 30;
+      this.$refs.goodList.scrollTop = this.heightList[index] + index * 30;
       this.menuActive = index;
     },
     // 滚动显示对应菜单
@@ -91,18 +91,13 @@ export default {
     },
     // 制作手机壳
     onCustomize(obj) {
-      const { name, thumb, camera_thumb, fingerprint_thumb } = obj;
       this.$store.commit("customInfo", {
         ...obj,
         gid: this.$route.query.id,
         isextend: 1,
         isdoble: 0,
         customize_type: 1,
-        title: name,
-        thumb: this.$store.state.interface_domain + thumb,
-        camera_thumb: this.$store.state.interface_domain + camera_thumb,
-        fingerprint_thumb:
-          this.$store.state.interface_domain + fingerprint_thumb
+        title: obj.name
       });
       if (this.$route.query.type == "share") this.$router.push("/edit");
       else this.$router.push("/customize");
@@ -152,8 +147,9 @@ export default {
     const windowHeight = window.outerHeight
       ? window.outerHeight * window.dpr
       : window.innerHeight;
-    const search_height = this.$refs.search.offsetHeight;
-    this.scroll_height = (windowHeight - search_height) / window.rem;
+    // const search_height = this.$refs.search.offsetHeight;
+    // this.scroll_height = (windowHeight - search_height) / window.rem;
+    this.scroll_height = windowHeight / window.rem;
   },
   beforeDestroy() {
     clearInterval(this.clearget_timer);
@@ -205,7 +201,7 @@ export default {
     font-size: 30px;
     overflow: hidden;
     .menu_group {
-      width: 230px;
+      width: 167px;
       height: 100%;
       background-color: #f6f6f6;
       border-top: solid 2px #eeeeee;
@@ -239,19 +235,20 @@ export default {
     .submenu_group {
       flex: 1;
       height: 100%;
-      padding: 0 30px 10px;
+      padding: 0 15px 10px;
       border-top: solid 2px #eeeeee;
       overflow-x: hidden;
       scroll-behavior: smooth;
       .model_series {
-        margin-top: 30px;
+        // margin-top: 30px;
         font-weight: 700;
         .device_group {
           display: flex;
           flex-flow: wrap;
+          margin-bottom: 30px;
           font-weight: 300;
           li {
-            padding: 14px;
+            padding: 11px;
             margin-top: 30px;
             margin-right: 20px;
             background-color: #ffffff;

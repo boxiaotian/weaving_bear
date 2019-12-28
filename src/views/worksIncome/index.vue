@@ -8,27 +8,30 @@
     >
       <div class="works_income_month">
         <span>{{ item.date }}</span>
-        <!-- <span>收入：￥5.76</span> -->
       </div>
-      <div class="works_income_source" v-for="item in 2" :key="item">
+      <div
+        class="works_income_source"
+        v-for="item1 in item.list"
+        :key="item1.id"
+      >
         <div class="commodity_info">
           <div class="commodity_info_left">
             <div class="commodity_img_group">
-              <img src="~assets/img/customize/phone_case.png" />
+              <img :src="$store.state.interface_domain + item1.gthumb" />
             </div>
             <div style="width:78%">
-              <h5>定制手机壳定制手机壳定制手机壳定制手机壳</h5>
-              <h6>高清彩印 来图定制高清彩印 来图定制高清彩印 来图定制</h6>
+              <h5>{{ item1.gtitle }}</h5>
+              <h6>{{ item1.gdescri }}</h6>
             </div>
           </div>
-          <div class="reward_price">+200.88</div>
+          <div class="reward_price">+{{ item1.cInfo.shareprice }}</div>
         </div>
         <div class="buyers">
           <div>
-            <img src="" />
-            <span>购买者</span>
+            <img :src="item1.ulogo" />
+            <span>{{ item1.uname }}</span>
           </div>
-          <div><span>2019.10.26</span><span>15:59</span></div>
+          <div>{{ item1.paytime }}</div>
         </div>
       </div>
     </div>
@@ -41,44 +44,9 @@ import { ShareGoodsBuyDetail } from "network/profile";
 export default {
   data() {
     return {
-      works_income_list: [
-        {
-          id: 1,
-          date: "2019/10",
-          gthumb: "/uploads/20191129/FoOm6lUStodHwkqD20ebEFYn1oQc.jpg",
-          gtitle: "华为畅享 9S",
-          descri: "华为畅享 9S",
-          ulogo:
-            "http://thirdwx.qlogo.cn/mmopen/mONcle9pic3z4IuujpVH8ia8bBeCvf65n8ckCnfYyNzAEgT36liclicv0YyaIlrkR3icEkbYPRmW8Jb9E3RLvKTIWKINMtUUrRbFI/132",
-          uname: "小田",
-          createtime: "2019.12.10 16.36",
-          reward: "200.00"
-        },
-        {
-          id: 2,
-          date: "2019/09",
-          gthumb: "/uploads/20191129/FoOm6lUStodHwkqD20ebEFYn1oQc.jpg",
-          gtitle: "华为畅享 9S",
-          descri: "华为畅享 9S",
-          ulogo:
-            "http://thirdwx.qlogo.cn/mmopen/mONcle9pic3z4IuujpVH8ia8bBeCvf65n8ckCnfYyNzAEgT36liclicv0YyaIlrkR3icEkbYPRmW8Jb9E3RLvKTIWKINMtUUrRbFI/132",
-          uname: "小田",
-          createtime: "2019.12.10 16.36",
-          reward: "200.00"
-        },
-        {
-          id: 3,
-          date: "2019/08",
-          gthumb: "/uploads/20191129/FoOm6lUStodHwkqD20ebEFYn1oQc.jpg",
-          gtitle: "华为畅享 9S",
-          descri: "华为畅享 9S",
-          ulogo:
-            "http://thirdwx.qlogo.cn/mmopen/mONcle9pic3z4IuujpVH8ia8bBeCvf65n8ckCnfYyNzAEgT36liclicv0YyaIlrkR3icEkbYPRmW8Jb9E3RLvKTIWKINMtUUrRbFI/132",
-          uname: "小田",
-          createtime: "2019.12.10 16.36",
-          reward: "200.00"
-        }
-      ]
+      works_income_list: [],
+      isrequest: true,
+      page: 1
     };
   },
   methods: {
@@ -88,13 +56,45 @@ export default {
     // 网络请求
     _ShareGoodsBuyDetail() {
       let { sid, sgid } = this.$route.query;
-      ShareGoodsBuyDetail(1, sid, sgid).then(res => {
-        console.log(res);
-      });
+      if (this.isrequest) {
+        ShareGoodsBuyDetail(this.page++, sid, sgid).then(res => {
+          if (res.list.length == 10) this.isrequest = true;
+          else this.isrequest = false;
+          let works_data = {};
+          while (res.list.length) {
+            let current = res.list.pop(); // 会影响原数组
+            works_data[current.date] = works_data[current.date] || [];
+            works_data[current.date].push(current);
+          }
+          Object.keys(works_data).map((key, index) => {
+            this.works_income_list.push({
+              id: index + 1,
+              date: key,
+              list: works_data[key]
+            });
+          });
+        });
+      }
+    },
+    // 可滚动容器的高度
+    onScroll() {
+      let innerHeight = document.querySelector("#app").clientHeight;
+      let outerHeight = document.documentElement.clientHeight;
+      let scrollTop =
+        document.documentElement.scrollTop ||
+        document.body.scrollTop ||
+        window.pageYOffset;
+      if (innerHeight - outerHeight - 50 < scrollTop) {
+        this._ShareGoodsBuyDetail();
+      }
     }
   },
   created() {
     this._ShareGoodsBuyDetail();
+    window.onscroll = () => this.onScroll();
+  },
+  beforeDestroy() {
+    window.onscroll = "";
   },
   components: {
     ReturnBtn
@@ -138,8 +138,8 @@ export default {
           text-overflow: ellipsis;
           white-space: nowrap;
           .commodity_img_group {
-            min-width: 78px;
-            min-height: 78px;
+            width: 78px;
+            height: 78px;
             margin-right: 30px;
             background-color: #ffffff;
             box-shadow: 0px 0px 40px 0px rgba(0, 0, 0, 0.05);

@@ -10,7 +10,7 @@
       <div class="works_item_info">
         <img :src="$store.state.interface_domain + item.thumb" />
         <h5>{{ item.title }}</h5>
-        <span v-if="pinfo.id">pinfo.name</span>
+        <span v-if="pinfo.id">{{ pinfo.name }}</span>
         <span style="color:#999999" v-else>未参与公益</span>
       </div>
       <div class="works_item_bottom">
@@ -107,9 +107,10 @@ export default {
   },
   created() {
     this._ShareGoodsList();
-    window.addEventListener("scroll", this.onScroll);
+    window.onscroll = () => this.onScroll();
   },
   beforeDestroy() {
+    window.onscroll = "";
     clearInterval(this.clearget_timer);
     this.clearget_timer = null;
   },

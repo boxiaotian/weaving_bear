@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 export const pushHistory = () => {
   let state = { title: "", url: "" };
   window.history.pushState(state, state.title, state.url);
@@ -34,24 +35,23 @@ export function getUrlKey(e) {
 }
 /* 压缩base64图片，怎么压缩base64是题外话，这里不赘述 */
 // 原图片 缩放比例 回调
-export function compress(base64, rate, callback) {
+export function compress(base64, callback) {
   //处理缩放，转格式
   var _img = new Image();
   _img.src = base64;
-  _img.onload = function() {
+  // eslint-disable-next-line prettier/prettier
+  _img.onload = function () {
     var _canvas = document.createElement("canvas");
-    var w = this.width / rate;
-    var h = this.height / rate;
-    _canvas.setAttribute("background", "rgba(0,0,0,0)");
-    _canvas.setAttribute("border", "none");
+    var w = this.width;
+    var h = this.height;
+    // _canvas.setAttribute("background", "rgba(0,0,0,0)");
+    // _canvas.setAttribute("border", "none");
     _canvas.setAttribute("width", w);
     _canvas.setAttribute("height", h);
     _canvas.getContext("2d").drawImage(this, 0, 0, w, h);
     var base64 = _canvas.toDataURL("image/jpeg");
-    _canvas.toBlob(function(blob) {
-      //如果还大，继续压缩
-      if (blob.size > 750 * 1334) compress(base64, rate, callback);
-      else callback(base64);
+    _canvas.toBlob(function () {
+      callback(base64);
     }, "image/jpeg");
   };
 }
@@ -81,4 +81,18 @@ export function onBridgeReady(WeixinParameter) {
       });
     }
   });
+}
+
+// transform样式处理方法
+export function transformProcess(element) {
+  let transform_array = element.style.transform.replace(/\s+/g, "").split(",");
+  let transform_str = "";
+  transform_array.map((item, index) => {
+    if (index == 5 || index == 13) transform_str += `-${item},`;
+    else transform_str += `${item},`;
+  });
+  if (transform_str.length) {
+    transform_str = transform_str.substr(0, transform_str.length - 1);
+  }
+  return transform_str;
 }

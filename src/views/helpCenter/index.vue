@@ -2,18 +2,6 @@
   <div class="help_center">
     <return-btn @onClickReturn="onClickReturn" />
     <div v-html="details" />
-    <!-- <van-collapse v-model="activeNames" :accordion="true">
-      <van-collapse-item v-for="item in 6" :key="item" :name="item">
-        <template slot="title">
-          <span class="help_center_icon">Q1</span>
-          <span>问题标题？</span>
-        </template>
-        问题解决方法问题解决方法问题解决方法问题解决方法问题解
-        决方法问题解决方法问题解决方法问题解决方法问题解决方法
-        问题解决方法问题解决方法问题解决方法问题解决方法问题解
-        决方法问题解决方法问题解决方法</van-collapse-item
-      >
-    </van-collapse> -->
   </div>
 </template>
 
@@ -45,6 +33,9 @@ export default {
 .help_center {
   // padding-top: 30px;
   padding: 0 30px;
+  p {
+    text-indent: 0;
+  }
   img {
     max-width: 100%;
     height: auto;

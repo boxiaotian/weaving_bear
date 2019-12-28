@@ -83,9 +83,10 @@ export default {
   },
   created() {
     this._ShareList();
-    window.addEventListener("scroll", this.onScroll);
+    window.onscroll = () => this.onScroll();
   },
   beforeDestroy() {
+    window.onscroll = "";
     clearInterval(this.clearget_timer);
     this.clearget_timer = null;
   },

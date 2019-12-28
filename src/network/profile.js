@@ -80,6 +80,14 @@ export function BindAgent(shareid) {
     data: { openid, token, uniacid, shareid }
   });
 }
+// 分享奖励列表
+export function ShareCommission(page) {
+  return request({
+    url: "/Apipersonal/shareCommission",
+    method: "POST",
+    data: { openid, token, uniacid, page }
+  });
+}
 // 我的证书列表
 export function PublicCert(page) {
   return request({
@@ -146,6 +154,22 @@ export function MyAgent2(page) {
     data: { openid, token, uniacid, page }
   });
 }
+// 推广订单
+export function RecommendOrder(page, type) {
+  return request({
+    url: "/Apipersonal/recommendOrder",
+    method: "POST",
+    data: { openid, token, uniacid, page, type }
+  });
+}
+// 推广奖励
+export function RecommendOrderMoney(page) {
+  return request({
+    url: "/Apipersonal/recommendOrderMoney",
+    method: "POST",
+    data: { openid, token, uniacid, page }
+  });
+}
 // 获取推广二维码
 export function GetRecommendCode() {
   return request({
@@ -203,6 +227,14 @@ export function GetOrderPay(paysn) {
     data: { openid, token, uniacid, paysn }
   });
 }
+// 根据支付单号完善公益信息
+export function OverOrderPublic(parmas) {
+  return request({
+    url: "/Apipersonal/overOrderPublic",
+    method: "POST",
+    data: { openid, token, uniacid, ...parmas }
+  });
+}
 
 // 提现页面余额信息
 export function MyMoney() {
@@ -243,5 +275,29 @@ export function OrderDetail(id) {
     url: "/Apipersonal/orderDetail",
     method: "POST",
     data: { openid, token, uniacid, id }
+  });
+}
+// 确认收货
+export function OrderOver(id) {
+  return request({
+    url: "/Apipersonal/orderOver",
+    method: "POST",
+    data: { openid, token, uniacid, id }
+  });
+}
+// 订单列表或者详情获取支付参数
+export function GetOrderPayParams(id) {
+  return request({
+    url: "/Apipersonal/getOrderPayParams",
+    method: "POST",
+    data: { openid, token, uniacid, id }
+  });
+}
+// 查看物流
+export function GetLogistics(parmas) {
+  return request({
+    url: "/Apipersonal/getLogistics",
+    method: "POST",
+    data: { openid, token, uniacid, ...parmas }
   });
 }

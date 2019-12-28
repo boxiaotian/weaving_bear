@@ -3,7 +3,7 @@
     <return-btn @onClickReturn="onClickReturn" />
     <good-item v-for="item in customize_list" :key="item.id" :good="item">
       <template slot="good_img">
-        <img :src="item.thumb" />
+        <img :src="$store.state.interface_domain + item.thumb" />
       </template>
       <template slot="good_fun">
         <div class="good_fun_group">
@@ -11,7 +11,7 @@
             type="primary"
             text="去编辑"
             color="#ff7301"
-            @click="onEdit(item)"
+            @click="onEdit(item.id)"
             plain
             round
           />
@@ -45,6 +45,7 @@ export default {
   data() {
     return {
       customize_list: [],
+      customize_lists: [],
       isrequest: true,
       page: 1
     };
@@ -52,30 +53,33 @@ export default {
   computed: {},
   methods: {
     onClickReturn() {
-      return this.$router.push("/iShare");
+      this.$router.replace("/iShare");
     },
     // 选择商品编辑
-    onEdit(obj) {
-      const { id, thumb, isextend, isdoble, title } = obj;
-      if (isextend)
-        this.$router.push({ path: "/model", query: { id, type: "share" } });
-      else {
-        let customize_type;
-        if (title.includes("壳")) customize_type = 1;
-        else if (title.includes("枕")) customize_type = 2;
-        else if (title.includes("包")) customize_type = 3;
-        else if (title.includes("杯")) customize_type = 4;
-        else if (title.includes("盒")) customize_type = 5;
-        this.$store.commit("customInfo", {
-          id,
-          isextend,
-          isdoble,
-          customize_type,
-          title,
-          thumb: thumb
-        });
-        this.$router.push("/edit");
-      }
+    onEdit(id) {
+      this.customize_lists.map(item => {
+        if (item.id == id) {
+          if (item.isextend)
+            this.$router.push({ path: "/model", query: { id, type: "share" } });
+          else {
+            let customize_type;
+            if (item.title.includes("壳")) customize_type = 1;
+            else if (item.title.includes("枕")) customize_type = 2;
+            else if (item.title.includes("包")) customize_type = 3;
+            else if (item.title.includes("杯")) customize_type = 4;
+            else if (item.title.includes("盒")) customize_type = 5;
+            this.$store.commit("customInfo", {
+              id: item.id,
+              isextend: item.isextend,
+              isdoble: item.isextend,
+              title: item.title,
+              thumb: item.thumb,
+              customize_type
+            });
+            this.$router.push("/edit");
+          }
+        }
+      });
     },
     // 选择商品分享
     onChoose(id) {
@@ -106,16 +110,18 @@ export default {
           res.list.map(item => {
             this.customize_list.push({
               ...item,
-              ischoose: false,
-              thumb: this.$store.state.interface_domain + item.thumb
+              ischoose: false
+            });
+            this.customize_lists.push({
+              ...item,
+              ischoose: false
             });
           });
           if (this.$store.state.share_goods.length) {
             this.customize_list.map((item_list, index) => {
               this.$store.state.share_goods.map(item => {
                 if (item_list.id == item.gid)
-                  this.customize_list[index].thumb =
-                    this.$store.state.interface_domain + item.thumb;
+                  this.customize_list[index].thumb = item.thumb;
               });
             });
           }
@@ -142,13 +148,16 @@ export default {
   },
   created() {
     this._CustomGoodsList();
-    window.addEventListener("scroll", this.onScroll);
+    window.onscroll = () => this.onScroll();
   },
   mounted() {
     if (window.history && window.history.pushState) {
       history.pushState(null, null, document.URL);
       window.addEventListener("popstate", this.onClickReturn, false); //false阻止默认事件
     }
+  },
+  beforeDestroy() {
+    window.onscroll = "";
   },
   destroyed() {
     window.removeEventListener("popstate", this.onClickReturn, false); //false阻止默认事件
@@ -168,23 +177,26 @@ export default {
   justify-content: space-between;
   padding: 0 30px;
   padding-bottom: 100px;
-  .good_fun_group {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    width: 100%;
-    height: 90px;
-    padding: 20px;
-    text-align: center;
-    .van-button {
-      width: 100px;
-      height: 50px;
-      padding: 0;
-      line-height: 50px;
-      font-size: 24px;
-    }
-    .good_choose {
-      width: 150px;
+  .good_item {
+    height: 470px;
+    .good_fun_group {
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+      width: 100%;
+      height: 90px;
+      padding: 20px;
+      text-align: center;
+      .van-button {
+        width: 100px;
+        height: 50px;
+        padding: 0;
+        line-height: 50px;
+        font-size: 24px;
+      }
+      .good_choose {
+        width: 150px;
+      }
     }
   }
   .share_now {

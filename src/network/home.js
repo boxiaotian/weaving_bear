@@ -7,8 +7,6 @@ const {
 } = $store.state;
 
 export function Index() {
-  console.log($store.state);
-
   return request({
     url: "/Apiindex/index",
     method: "POST",

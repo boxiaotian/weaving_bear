@@ -16,7 +16,7 @@
       <div class="commodity_info_brief">
         {{ details.descri }}
       </div>
-      <div class="commodity_info_price">¥{{ details.price }}</div>
+      <div class="commodity_info_price">¥{{ selected_norm.price }}</div>
     </div>
     <div class="commodity_graphic">
       <div class="commodity_graphic_title">图文详情</div>
@@ -99,7 +99,7 @@
         </van-popup>
         <!-- </div> -->
       </div>
-      <div class="charitable_projects">
+      <!-- <div class="charitable_projects">
         <h6>
           选择公益项目支持 <span>（平台将以您的名义给所选公益项目捐赠）</span>
         </h6>
@@ -125,7 +125,7 @@
             <span v-else>暂无更多～</span>
           </div>
         </van-popup>
-      </div>
+      </div> -->
       <van-cell title="商品备注" :border="false">
         <van-field
           v-model="product_notes"
@@ -166,29 +166,29 @@
 <script>
 import { ReturnBtn } from "components/index";
 import { ArtistGoodsDetail, AddCart } from "network/artist";
-import { PublicPoolList } from "network/charityPool";
+// import { PublicPoolList } from "network/charityPool";
 export default {
   data() {
     return {
       swipeHeight: 0, // 轮播图高度
       details: {},
-      public_lool_list: [], // 公益列表
       swipe_list: [],
       show_popup: false, // 弹窗
       show_model: false, //机型弹窗
       show_norm: false, // 规格弹窗
       selected_norm: {}, // 选中的规格
       norm_list: {}, // 规格数据
-      show_charitable: false, // 公益弹窗
-      selected_public: { id: 0, name: "不选择" }, //选中的公益
-      charitable_list: { province_list: {} }, // 公益数据
-      public_tips: "暂无公益支持", // 公益提示,
-      isrequest: true, // 是否请求公益
-      isload: false, // 是否显示加载
-      page: 1, // 公益分页
       product_notes: "", // 商品备注
       number_value: 1, // 购买值
       isbuy: true
+      // public_lool_list: [], // 公益列表
+      // show_charitable: false, // 公益弹窗
+      // selected_public: { id: 0, name: "不选择" }, //选中的公益
+      // charitable_list: { province_list: {} }, // 公益数据
+      // public_tips: "暂无公益支持", // 公益提示,
+      // isrequest: true, // 是否请求公益
+      // isload: false, // 是否显示加载
+      // page: 1, // 公益分页
     };
   },
   methods: {
@@ -214,46 +214,36 @@ export default {
         if (obj[0].code == item.id) this.selected_norm = item;
       });
     },
-    // 选择公益项目
-    onCharitableSelect() {
-      if (this.details.ispublic) {
-        this._PublicPoolList();
-        this.show_charitable = !this.show_charitable;
-      } else this.$toast("抱歉，该商品未参与公益");
-    },
-    onCharitableConfirm(obj) {
-      this.show_charitable = !this.show_charitable;
-      if (obj[0].code) {
-        this.public_lool_list.map(item => {
-          if (obj[0].code == item.id) this.selected_public = item;
-        });
-      } else this.selected_public = { id: 0, name: "不选择" };
-    },
+    // // 选择公益项目
+    // onCharitableSelect() {
+    //   if (this.details.ispublic) {
+    //     this._PublicPoolList();
+    //     this.show_charitable = !this.show_charitable;
+    //   } else this.$toast("抱歉，该商品未参与公益");
+    // },
+    // onCharitableConfirm(obj) {
+    //   this.show_charitable = !this.show_charitable;
+    //   if (obj[0].code) {
+    //     this.public_lool_list.map(item => {
+    //       if (obj[0].code == item.id) this.selected_public = item;
+    //     });
+    //   } else this.selected_public = { id: 0, name: "不选择" };
+    // },
     // 点击加载更多
-    onLoadMore() {
-      if (this.isrequest) this._PublicPoolList();
-      else this.$toast("暂无更多");
-    },
+    // onLoadMore() {
+    //   if (this.isrequest) this._PublicPoolList();
+    //   else this.$toast("暂无更多");
+    // },
     // 立即购买
     onBuy() {
-      let { artistid: said, gid: id } = this.$route.query;
-      let { id: pid, name: pname } = this.selected_public;
-      let {
-        id: spec_item_id,
-        name: spec_item_name,
-        price: spec_item_price
-      } = this.selected_norm;
-      pname = pname == "不选择" ? "" : pname;
       if (this.selected_norm.stock) {
         this.$store.commit("submitInfo", {
           data: {
-            said,
-            id,
-            pid,
-            pname,
-            spec_item_id,
-            spec_item_name,
-            spec_item_price,
+            said: this.$route.query.artistid,
+            id: this.$route.query.gid,
+            spec_item_id: this.selected_norm.id,
+            spec_item_name: this.selected_norm.name,
+            spec_item_price: this.selected_norm.price,
             num: this.number_value,
             remark: this.product_notes
           },
@@ -264,22 +254,12 @@ export default {
     },
     // 加入购物车
     onCart() {
-      let { artistid: said, gid: id } = this.$route.query;
-      let { id: pid, name: pname } = this.selected_public;
-      let {
-        id: spec_item_id,
-        name: spec_item_name,
-        price: spec_item_price
-      } = this.selected_norm;
-      pname = pname == "不选择" ? "" : pname;
       let data = {
-        said,
-        id,
-        pid,
-        pname,
-        spec_item_id,
-        spec_item_name,
-        spec_item_price,
+        said: this.$route.query.artistid,
+        id: this.$route.query.gid,
+        spec_item_id: this.selected_norm.id,
+        spec_item_name: this.selected_norm.name,
+        spec_item_price: this.selected_norm.price,
         num: this.number_value,
         remark: this.product_notes
       };
@@ -291,10 +271,11 @@ export default {
       const { artistid, gid } = this.$route.query;
       ArtistGoodsDetail(artistid, gid).then(res => {
         this.details = res.info;
-        this.selected_norm = res.info.specs[0].item[0];
-        if (this.details.ispublic) this.public_tips = "不选择";
+        // if (this.details.ispublic) this.public_tips = "不选择";
         document.title = this.details.title;
         this.swipe_list = res.info.images.split(",");
+        // 规格信息
+        this.selected_norm = res.info.specs[0].item[0];
         let province_list = {};
         res.info.specs[0].item.map(item => {
           province_list[item.id] = item.name;
@@ -303,22 +284,20 @@ export default {
       });
     },
     _AddCart(params) {
-      AddCart(params).then(res => {
-        console.log(res);
-      });
-    },
-    _PublicPoolList() {
-      if (this.isrequest) {
-        PublicPoolList(this.page++).then(res => {
-          if (res.list.length == 10) this.isrequest = true;
-          else this.isrequest = false;
-          this.public_lool_list = this.public_lool_list.concat(res.list);
-          let province_list = this.charitable_list.province_list;
-          res.list.map(item => (province_list[item.id] = item.name));
-          this.charitable_list = { province_list };
-        });
-      }
+      AddCart(params).then(() => this.$toast("加入购物车成功"));
     }
+    // _PublicPoolList() {
+    //   if (this.isrequest) {
+    //     PublicPoolList(this.page++).then(res => {
+    //       if (res.list.length == 10) this.isrequest = true;
+    //       else this.isrequest = false;
+    //       this.public_lool_list = this.public_lool_list.concat(res.list);
+    //       let province_list = this.charitable_list.province_list;
+    //       res.list.map(item => (province_list[item.id] = item.name));
+    //       this.charitable_list = { province_list };
+    //     });
+    //   }
+    // }
   },
   created() {
     this._ArtistGoodsDetail();
@@ -357,6 +336,9 @@ export default {
   .commodity_graphic {
     .commodity_graphic_details {
       margin-bottom: 110px;
+      p {
+        text-indent: 0;
+      }
       img {
         max-width: 100%;
         max-height: auto;
@@ -464,6 +446,7 @@ export default {
           flex-direction: column;
           align-items: center;
           justify-content: center;
+          overflow: hidden;
           img {
             width: auto;
             height: 80%;
@@ -617,7 +600,7 @@ export default {
         min-width: 240px;
         height: 50px;
         padding: 0 40px 0 20px;
-        margin: 26px 0 58px;
+        margin: 26px 0 0;
         background-color: #eeeeee;
         border-radius: 25px;
         font-size: 30px;

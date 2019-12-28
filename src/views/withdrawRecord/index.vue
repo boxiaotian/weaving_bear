@@ -91,13 +91,16 @@ export default {
   },
   created() {
     this._ApplyWithdrawList();
-    window.addEventListener("scroll", this.onScroll);
+    window.onscroll = () => this.onScroll();
   },
   mounted() {
     if (window.history && window.history.pushState) {
       history.pushState(null, null, document.URL);
       window.addEventListener("popstate", this.onClickReturn, false); //false阻止默认事件
     }
+  },
+  beforeDestroy() {
+    window.onscroll = "";
   },
   destroyed() {
     window.removeEventListener("popstate", this.onClickReturn, false); //false阻止默认事件

@@ -38,14 +38,14 @@
               color="#1b1b1b"
               round
             />
-            <router-link to="/sharingRewards" tag="div" class="sharing_rewards">
+            <!-- <router-link to="/sharingRewards" tag="div" class="sharing_rewards">
               <van-button
                 type="primary"
                 text="分享奖励 >"
                 color="#ffffff"
                 round
               />
-            </router-link>
+            </router-link> -->
           </div>
         </div>
       </div>
@@ -56,7 +56,7 @@
         </van-grid-item>
         <van-grid-item @click="onJumpLink('myCertificate')">
           <div class="my_module_number">{{ profile_info.certNum }}</div>
-          <div>公益证书</div>
+          <div>公益感谢信</div>
         </van-grid-item>
         <van-grid-item @click="onJumpLink('shoppingCart')">
           <div class="my_module_number">{{ profile_info.cartNum }}</div>
@@ -90,19 +90,19 @@
         <!-- <a href="javascript:;">查看所有订单></a> -->
       </div>
       <van-grid :border="false" square>
-        <van-grid-item>
+        <van-grid-item @click="onOrderList(1)">
           <img src="~assets/img/profile/pending_pay.png" />
           <div>待付款</div>
         </van-grid-item>
-        <van-grid-item>
+        <van-grid-item @click="onOrderList(2)">
           <img src="~assets/img/profile/pending_receipt.png" />
           <div>待发货</div>
         </van-grid-item>
-        <van-grid-item>
+        <van-grid-item @click="onOrderList(3)">
           <img src="~assets/img/profile/shipped.png" />
           <div>已发货</div>
         </van-grid-item>
-        <van-grid-item>
+        <van-grid-item @click="onOrderList(4)">
           <img src="~assets/img/profile/completed.png" />
           <div>已完成</div>
         </van-grid-item>
@@ -153,6 +153,9 @@ export default {
         name: this.profile_info.name
       });
       this.$router.push("/distributor");
+    },
+    onOrderList(type) {
+      this.$router.push({ path: "/myOrder", query: { type } });
     },
     onJumpLink(type) {
       this.$router.push(`/${type}`);

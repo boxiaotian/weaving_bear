@@ -3,26 +3,36 @@
     <return-btn @onClickReturn="onClickReturn" />
     <div class="view_logistics_top">
       <div class="view_logistics_img">
-        <img src="~assets/img/customize/phone_case_big.png" />
+        <img :src="$store.state.interface_domain + order_details.gthumb" />
       </div>
       <div class="view_logistics_info">
-        <p>物流状态：<span>运输中</span></p>
-        <p>承运来源：圆通快递</p>
-        <p>运单编号：9865612355</p>
+        <p>
+          物流状态：<span>{{ orderStatus(order_details.status) }}</span>
+        </p>
+        <p v-if="order_details.freight_name">
+          承运来源：{{ order_details.freight_name }}
+        </p>
+        <p v-if="order_details.freight_number">
+          运单编号：{{ order_details.freight_number }}
+        </p>
       </div>
     </div>
     <van-steps direction="vertical" active-color="#22C19B">
-      <van-step>
-        <h3>商家正在通知快递公司揽件</h3>
-        <p>2016-07-12 12:40</p>
+      <van-step v-for="(item, index) in logistics_list" :key="index">
+        <h3>{{ item.AcceptStation }}</h3>
+        <p>{{ item.AcceptTime }}</p>
       </van-step>
-      <van-step>
-        <h3>您的包裹已出库</h3>
-        <p>2016-07-11 10:00</p>
+      <van-step v-if="order_details.status > 3">
+        <h3>已发货</h3>
+        <p>{{ order_details.freight_time }}</p>
       </van-step>
-      <van-step>
-        <h3>您的订单开始处理</h3>
-        <p>2016-07-10 09:30</p>
+      <van-step v-if="order_details.status > 2">
+        <h3>商品制作中</h3>
+        <p>{{ order_details.maketime }}</p>
+      </van-step>
+      <van-step v-if="order_details.status > 1">
+        <h3>仓库处理中</h3>
+        <p>{{ order_details.createtime }}</p>
       </van-step>
     </van-steps>
   </div>
@@ -30,11 +40,48 @@
 
 <script>
 import { ReturnBtn } from "components/index";
+import { OrderDetail, GetLogistics } from "network/profile";
 export default {
+  data() {
+    return {
+      order_details: {},
+      logistics_list: []
+    };
+  },
   methods: {
     onClickReturn() {
-      this.$router.push("/orderDetails");
+      this.$router.back();
+    },
+    // 订单状态
+    orderStatus(status) {
+      let status_text;
+      if (this.order_details.freight_number) status_text = "运输中";
+      else if (status == 2) status_text = "备货中";
+      else if (status == 3) status_text = "制作中";
+      else if (status == 4) status_text = "已发货";
+      return status_text;
+    },
+    // 网络请求
+    _OrderDetail() {
+      OrderDetail(this.$route.query.id).then(res => {
+        this.order_details = res.info;
+        if (res.info.freight_number && res.info.freight_name) {
+          console.log(111);
+
+          this._GetLogistics({
+            number: res.info.freight_number,
+            name: res.info.freight_name,
+            ordersn: res.info.ordersn
+          });
+        }
+      });
+    },
+    _GetLogistics(params) {
+      GetLogistics(params).then(res => (this.logistics_list = res));
     }
+  },
+  created() {
+    this._OrderDetail();
   },
   components: {
     ReturnBtn
@@ -76,7 +123,7 @@ export default {
     line-height: 40px;
     color: #999999;
     .view_logistics_img {
-      width: 120px;
+      min-width: 120px;
       height: 120px;
       padding: 20px 0;
       margin-right: 44px;

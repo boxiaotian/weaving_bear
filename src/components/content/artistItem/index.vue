@@ -7,7 +7,7 @@
     <img :src="$store.state.interface_domain + artist.thumb" />
     <div class="title_introduction">
       <div class="title">{{ artist.name }}</div>
-      <div class="introduction">简介{{ artist.descri }}</div>
+      <div class="introduction">{{ artist.descri }}</div>
     </div>
   </router-link>
 </template>

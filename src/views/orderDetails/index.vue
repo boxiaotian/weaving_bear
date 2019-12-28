@@ -5,7 +5,12 @@
       <div>
         <span>{{ orderStatus(order_details.status) }}</span>
         <van-button
-          v-if="order_details.status == 2 || order_details.status == 3"
+          v-if="
+            order_details.status == 2 ||
+              order_details.status == 3 ||
+              order_details.status == 4 ||
+              order_details.status == 6
+          "
           type="primary"
           size="mini"
           text="查看物流 >"
@@ -15,7 +20,7 @@
           round
         />
       </div>
-      <img src="~assets/img/order/order_car.png" />
+      <img src="~assets/img/order_car.png" />
     </div>
     <div class="order_details_address">
       <h6>
@@ -30,7 +35,7 @@
     <div class="order_details_commodity">
       <div class="order_details_commodity_top">
         <div class="order_details_commodity_img">
-          <img src="~assets/img/customize/phone_case_big.png" />
+          <img :src="$store.state.interface_domain + order_details.gthumb" />
         </div>
         <div class="order_details_commodity_content">
           <h6>
@@ -63,6 +68,17 @@
           size="mini"
           text="立即付款"
           color="#1b1b1b"
+          @click="onSubmitOrder(order_details.id, order_details.paysn)"
+          plain
+          round
+        />
+        <van-button
+          v-if="order_details.status == 4"
+          type="primary"
+          size="mini"
+          text="确认收货"
+          color="#1b1b1b"
+          @click="onConfirmReceipt(order_details.id)"
           plain
           round
         />
@@ -77,7 +93,7 @@
         />
         <van-cell
           title="下单时间"
-          :value="order_details.createtime"
+          :value="order_details.paytime"
           :border="false"
         />
         <van-cell
@@ -87,16 +103,14 @@
         />
       </van-cell-group>
     </div>
-    <div class="order_details_certificate">
+    <div class="order_details_certificate" v-if="order_details.status > 1">
       <h6>公益证书</h6>
       <div class="certificate_box">
         <img src="~assets/img/profile/certificate_box.png" />
-        <div class="winner">张三</div>
+        <div class="winner">{{ order_details.certInfo.uname }}</div>
         <div class="award_info">
-          <span>2019.11.06</span>
-          <span>红十字公益基金会</span>
+          <span>{{ order_details.certInfo.createtime }}</span>
         </div>
-        <img class="chapter" src="~assets/img/profile/chapter.png" />
       </div>
     </div>
   </div>
@@ -104,7 +118,8 @@
 
 <script>
 import { ReturnBtn } from "components/index";
-import { OrderDetail } from "network/profile";
+import { onBridgeReady } from "common/utils";
+import { OrderDetail, GetOrderPayParams, OrderOver } from "network/profile";
 export default {
   data() {
     return {
@@ -118,13 +133,29 @@ export default {
     onViewLogistics() {
       this.$router.push("/viewLogistics");
     },
+    // 立即付款
+    onSubmitOrder(id, paysn) {
+      this._GetOrderPayParams(id, paysn);
+    },
+    // 确认收货
+    onConfirmReceipt(id) {
+      this.$dialog
+        .confirm({
+          title: "您确定收到货物了吗？",
+          confirmButtonColor: "#ff7301"
+        })
+        .then(() => this._OrderOver(id))
+        .catch(() => {});
+    },
     // 订单状态
     orderStatus(status) {
       let status_text;
       if (status == 1) status_text = "待付款";
       else if (status == 2) status_text = "待发货";
-      else if (status == 3) status_text = "已发货";
-      else if (status == 4) status_text = "已完成";
+      else if (status == 3) status_text = "制作中";
+      else if (status == 4) status_text = "已发货";
+      else if (status == 5) status_text = "已退款";
+      else if (status == 6) status_text = "已完成";
       return status_text;
     },
     // 网络请求
@@ -132,6 +163,26 @@ export default {
       OrderDetail(this.$route.query.id).then(
         res => (this.order_details = res.info)
       );
+    },
+    _GetOrderPayParams(id, paysn) {
+      GetOrderPayParams(id).then(res => {
+        onBridgeReady(res.params).then(res_pay => {
+          if (res_pay.err_msg == "get_brand_wcpay_request:ok") {
+            this.$router.replace({
+              path: "/paySuccess",
+              query: { paysn }
+            });
+          }
+        });
+      });
+    },
+    _OrderOver(id) {
+      OrderOver(id).then(() => {
+        this.page = 1;
+        this.isrequest = true;
+        this.order_list = [];
+        this._OrderList();
+      });
     }
   },
   created() {
@@ -205,7 +256,7 @@ export default {
       display: flex;
       flex-direction: row;
       .order_details_commodity_img {
-        width: 122px;
+        min-width: 122px;
         height: 122px;
         padding: 20px 0;
         margin-right: 47px;
@@ -220,7 +271,7 @@ export default {
         }
       }
       .order_details_commodity_content {
-        width: 58%;
+        // width: 58%;
         height: 100%;
         font-size: 30px;
         p {
@@ -302,42 +353,24 @@ export default {
       justify-content: space-between;
       position: relative;
       width: 690px;
-      height: 1002px;
-      padding: 22px 16px;
+      height: 1030px;
       background-color: #ffffff;
-      color: #384346;
-      text-align: center;
+      color: #854e00;
+      font-size: 24px;
       img {
         width: 100%;
         height: 100%;
       }
       .winner {
-        position: absolute;
-        top: 400px;
-        right: 0;
-        left: 0;
-        font-size: 30px;
-        line-height: 54px;
+        top: 326px;
+        left: 94px;
       }
       .award_info {
-        display: flex;
-        flex-direction: row;
-        justify-content: space-between;
         position: absolute;
-        right: 76px;
-        bottom: 130px;
-        left: 92px;
+        right: 100px;
+        bottom: 154px;
         z-index: 1;
-        // padding: 0 16px 0 32px;
-        font-size: 24px;
-        line-height: 24px;
-      }
-      .chapter {
-        position: absolute;
-        right: 104px;
-        bottom: 104px;
-        width: 140px;
-        height: 140px;
+        font-size: 18px;
       }
     }
   }

@@ -3,13 +3,14 @@
     <return-btn @onClickReturn="onClickReturn" />
     <div class="i_share_form_group">
       <div class="share_form_title">
-        <span>姓名</span>（公益证书上名称将以该名称为准，请认真填写哦）
+        <span>姓名</span>
+        <!-- （公益证书上名称将以该名称为准，请认真填写哦） -->
       </div>
-      <van-field v-model="share_name" placeholder="请输入姓名" />
+      <van-field v-model="share_name" placeholder="请输入姓名" @blur="onBlur" />
     </div>
     <div class="i_share_form_group">
       <div class="share_form_title">
-        <span>选择公益</span>（平台将以您的名义给所选公益项目捐赠）
+        <span>选择公益</span>（平台将根据您的建议给所选公益项目捐赠）
       </div>
       <van-dropdown-menu active-color="#ff7301">
         <van-dropdown-item v-model="public_value" :options="public_option" />
@@ -38,6 +39,7 @@
 </template>
 
 <script>
+import { compress } from "common/utils";
 import { ReturnBtn } from "components/index";
 import { PublicPoolList } from "network/charityPool";
 import { ImagesUpload } from "network/home";
@@ -49,26 +51,52 @@ export default {
       public_value: 0,
       public_option: [{ text: "不选择", value: 0 }],
       file_list: [],
-      share_descri: "希望各位哥哥姐姐多多支持我的作品"
+      share_descri: ""
     };
   },
   methods: {
     onClickReturn() {
-      return this.$router.push("/home");
+      return this.$router.replace("/home");
     },
-    afterRead(file) {
-      console.log(file);
+    onBlur() {
+      if (this.share_name) {
+        if (this.public_value) {
+          this.public_option.map(item => {
+            if (item.value == this.public_value) {
+              this.share_descri = `尊敬的各位亲朋好友，我是${this.share_name}，我在用自己设计的作品支持${item.text}公益项目。我承诺将版权费捐赠给${item.text}公益项目。
+
+积小流，聚江海。一点点小的善意也会化作星光照亮前行的路，星辰大海永远不会被现实消磨，希望可以获得每一个充满善意的心的支持。`;
+            }
+          });
+        } else {
+          this.share_descri = `尊敬的各位亲朋好友，我是${this.share_name}，这是我设计的美术衍生品。每销售一款我设计的作品，平台都将捐赠一定的金额给公益项目。您可以建议平台将款项捐赠给您支持的项目。
+
+积小流，聚江海。一点点小的善意也会化作星光照亮前行的路，星辰大海永远不会被现实消磨，希望可以获得每一个充满善意的心的支持。`;
+        }
+      } else this.share_descri = "";
     },
+    afterRead() {},
     onNextStep() {
+      let size = this.file_list[0];
+      this.$store.commit("shareGoods", []);
       if (!this.share_name) this.$toast("请输入你的姓名");
       else if (!this.file_list.length) this.$toast("请上传你的作品");
-      else if (!this.share_descri) this.$toast("请上传你的留言");
-      else this._ImagesUpload(this.file_list[0].content);
+      else if (size > 500000) {
+        this.$toast("您上传的图片太小，建议您选择其他图片");
+      } else if (size > 500000 && size < 5200000) {
+        this.$toast("您上传的图片太大，请在手机上略微裁剪或选择其他图片");
+      } else {
+        if (size > 1000000) {
+          compress(this.file_list[0].content, base64 => {
+            this._ImagesUpload(base64);
+          });
+        } else this._ImagesUpload(this.file_list[0].content);
+      }
     },
     // 网络请求
     // 公益列表
     _PublicPoolList() {
-      PublicPoolList(1).then(res => {
+      PublicPoolList(1, 20).then(res => {
         res.list.map(item => {
           this.public_option.push({
             text: item.name,
@@ -95,6 +123,25 @@ export default {
         this.$store.commit("shareInfoId", res.id);
         this.$router.push({ path: "/shareList" });
       });
+    }
+  },
+  watch: {
+    public_value: function() {
+      if (this.share_name) {
+        if (this.public_value) {
+          this.public_option.map(item => {
+            if (item.value == this.public_value) {
+              this.share_descri = `尊敬的各位亲朋好友，我是${this.share_name}，我在用自己设计的作品支持${item.text}公益项目。我承诺将版权费捐赠给${item.text}公益项目。
+
+积小流，聚江海。一点点小的善意也会化作星光照亮前行的路，星辰大海永远不会被现实消磨，希望可以获得每一个充满善意的心的支持。`;
+            }
+          });
+        } else {
+          this.share_descri = `尊敬的各位亲朋好友，我是${this.share_name}，这是我设计的美术衍生品。每销售一款我设计的作品，平台都将捐赠一定的金额给公益项目。您可以建议平台将款项捐赠给您支持的项目。
+
+积小流，聚江海。一点点小的善意也会化作星光照亮前行的路，星辰大海永远不会被现实消磨，希望可以获得每一个充满善意的心的支持。`;
+        }
+      } else this.share_descri = "";
     }
   },
   created() {

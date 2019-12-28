@@ -4,88 +4,46 @@
     <div class="customize_group">
       <div
         class="customize_commodity"
-        :style="{ height: customize_height.toFixed(3) + 'rem' }"
+        :style="{ minHeight: customize_height.toFixed(3) + 'rem' }"
       >
         <div
           class="commodity_img"
-          :style="{ height: customize_info_height.toFixed(3) + 'rem' }"
+          :style="{ minHeight: customize_info_height.toFixed(3) + 'rem' }"
         >
-          <div class="pillow_front_back" v-if="custom_info.isdoble">
+          <!-- <div class="pillow_front_back" v-if="custom_info.isdoble">
             <div :class="[isfront && 'pillow_front']" @click="onPillowFront">
               正面
             </div>
             <div :class="[isback && 'pillow_back']" @click="onPillowBack">
               反面
             </div>
-          </div>
-          <!-- 定制手机壳 -->
-          <div
+          </div> -->
+          <phone-case
             v-if="custom_info.customize_type == 1"
-            class="phone_case_group"
-            :style="phoneCaseModel"
-            :id="'imageWrapper' + custom_info.customize_type"
-          >
-            <img
-              class="camera"
-              :style="cameraModel"
-              :src="custom_info.camera_thumb"
-            />
-            <img
-              class="fingerprint"
-              :style="fingerprintModel"
-              :src="custom_info.fingerprint_thumb"
-            />
-            <img
-              v-if="uploaded_picture"
-              id="phone_case"
-              :src="uploaded_picture"
-              @touchstart="down"
-              @touchmove="move"
-              @touchend="flags == false"
-            />
-          </div>
-          <!-- 定制抱枕 -->
-          <div
-            class="pillow_group"
+            :custom_info="custom_info"
+            :uploaded_picture="uploaded_picture"
+          />
+          <pillow
             v-else-if="custom_info.customize_type == 2"
-            :id="'imageWrapper' + custom_info.customize_type"
-          >
-            <img class="model_img" :src="custom_info.thumb" />
-            <div
-              class="pillow_mask"
-              @touchstart="down"
-              @touchmove="move"
-              @touchend="flags == false"
-            ></div>
-            <div>
-              <img
-                v-if="uploaded_picture"
-                id="phone_case"
-                :src="uploaded_picture"
-              />
-            </div>
-          </div>
-          <!-- 挎包 -->
-          <div
-            class="shoulder_bag_group"
+            :custom_info="custom_info"
+            :uploaded_picture="uploaded_picture"
+          />
+          <shoulder-bag
             v-else-if="custom_info.customize_type == 3"
-            :id="'imageWrapper' + custom_info.customize_type"
-          >
-            <img :src="custom_info.thumb" />
-            <div
-              class="shoulder_bag_mask"
-              @touchstart="down"
-              @touchmove="move"
-              @touchend="flags == false"
-            ></div>
-            <div>
-              <img
-                v-if="uploaded_picture"
-                id="phone_case"
-                :src="uploaded_picture"
-              />
-            </div>
-          </div>
+            :custom_info="custom_info"
+            :uploaded_picture="uploaded_picture"
+          />
+          <cup
+            v-else-if="custom_info.customize_type == 4"
+            :custom_info="custom_info"
+            :uploaded_picture="uploaded_picture"
+          />
+          <stationery-box
+            v-else-if="custom_info.customize_type == 5"
+            :custom_info="custom_info"
+            :uploaded_picture="uploaded_picture"
+            :ismirror="ismirror"
+          />
         </div>
         <div class="customize_info" ref="customize_info">
           <div v-if="custom_info.customize_type == 1">
@@ -106,13 +64,24 @@
               src="~assets/img/icon/cup.png"
               v-if="custom_info.customize_type == 4"
             />
-            定制{{ custom_info.title }}
+            <img
+              src="~assets/img/icon/stationery_box.png"
+              v-if="custom_info.customize_type == 5"
+            />
+            {{ custom_info.title }}
           </div>
           <div class="customize_next" @click="onNextStep">下一步</div>
+          <van-checkbox
+            v-if="custom_info.customize_type == 5"
+            v-model="ismirror"
+            checked-color="#ffffff"
+            @change="onMirror"
+            >制作镜像</van-checkbox
+          >
         </div>
       </div>
       <div class="upload_img" ref="upload_img">
-        <van-uploader :max-count="1" :after-read="afterRead">
+        <div class="img_uploader">
           <van-button
             type="primary"
             text="上传图片"
@@ -120,7 +89,8 @@
             color="#ffa868"
             round
           />
-        </van-uploader>
+          <input class="input_uploader" @change="onUploaderImg" type="file" />
+        </div>
         <div>*请注意所上传图片的清晰度和尺寸大小，以免实物制作效果不佳</div>
       </div>
     </div>
@@ -130,7 +100,14 @@
 
 <script>
 import html2canvas from "html2canvas";
-import { compress } from "common/utils";
+import AlloyFinger from "alloyfinger";
+import PhoneCase from "./customProducts/phoneCase";
+import Pillow from "./customProducts/pillow";
+import ShoulderBag from "./customProducts/shoulderBag";
+import cup from "./customProducts/cup";
+import StationeryBox from "./customProducts/stationeryBox";
+import Transform from "common/transform";
+import { compress, transformProcess } from "common/utils";
 import { ReturnBtn } from "components/index";
 import { SubmitInfo } from "network/customize";
 import { ImagesUpload } from "network/home";
@@ -144,6 +121,7 @@ export default {
       isback: false, // 反面
       ismaking: false, // 制作动画
       flags: false, // 是否开启拖到图片
+      ismirror: false, // 是否开启镜像
       clearget_timer: null, // 清除定时器
       uploaded_picture: "", // 上传的图片
       position: { x: 0, y: 0 },
@@ -155,30 +133,9 @@ export default {
       yPum: ""
     };
   },
-  computed: {
-    phoneCaseModel: function() {
-      let width = (this.custom_info.width / 2 / 54).toFixed(3);
-      let height = (this.custom_info.height / 2 / 54).toFixed(3);
-      return `width:${width}rem;height:${height}rem`;
-    },
-    cameraModel: function() {
-      let width = (this.custom_info.camera_width / 2 / 54).toFixed(3);
-      let height = (this.custom_info.camera_height / 2 / 54).toFixed(3);
-      let top = (this.custom_info.camera_top / 2 / 54).toFixed(3);
-      let left = (this.custom_info.camera_left / 2 / 54).toFixed(3);
-      return `width:${width}rem;height:${height}rem;top:${top}rem;left:${left}rem`;
-    },
-    fingerprintModel: function() {
-      let width = (this.custom_info.fingerprint_width / 2 / 54).toFixed(3);
-      let height = (this.custom_info.fingerprint_height / 2 / 54).toFixed(3);
-      let top = (this.custom_info.fingerprint_top / 2 / 54).toFixed(3);
-      let left = (this.custom_info.fingerprint_left / 2 / 54).toFixed(3);
-      return `width:${width}rem;height:${height}rem;top:${top}rem;left:${left}rem`;
-    }
-  },
   methods: {
     onClickReturn() {
-      this.$router.push("/customizeList");
+      this.$router.replace("/customizeList");
     },
     // 抱枕正面
     onPillowFront() {
@@ -190,21 +147,69 @@ export default {
       this.isfront = !this.isfront;
       this.isback = !this.isback;
     },
+    // 文具盒镜像
+    onMirror() {
+      if (this.uploaded_picture) {
+        if (this.ismirror) {
+          this.$toast.loading({
+            duration: 0, // 持续展示 toast
+            forbidClick: true,
+            message: "镜像制作中..."
+          });
+          setTimeout(() => this.$toast.clear(), 1000);
+        }
+      } else {
+        this.ismirror = false;
+        this.$toast.fail({
+          forbidClick: true,
+          icon: "cross",
+          message: "请上传图片"
+        });
+      }
+    },
     // 上传图片
-    afterRead(file) {
-      this.uploaded_picture = file.content;
+    onUploaderImg(event) {
+      let file = event.target.files[0];
+      let reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = e => {
+        let imgcode = e.target.result;
+        if (file.size < 500000) {
+          this.$toast("您上传的图片太小，建议您选择其他图片");
+        } else if (file.size > 500000 && file.size < 5200000) {
+          if (file.size > 1000000) {
+            compress(imgcode, base64 => {
+              ImagesUpload({
+                file: base64,
+                type: "custom_old",
+                gid: this.custom_info.id
+              }).then(res => (this.uploaded_picture = res.file_path));
+            });
+          } else {
+            ImagesUpload({
+              file: imgcode,
+              type: "custom_old",
+              gid: this.custom_info.id
+            }).then(res => (this.uploaded_picture = res.file_path));
+          }
+        } else {
+          this.$toast("您上传的图片太大，请在手机上略微裁剪或选择其他图片");
+        }
+      };
     },
     // 触摸上传图片
     down() {
-      this.flags = true;
-      var touch;
-      if (event.touches) touch = event.touches[0];
-      else touch = event;
-      this.position.x = touch.clientX;
-      this.position.y = touch.clientY;
       let moveDiv = document.getElementById("phone_case");
-      this.dx = moveDiv.offsetLeft;
-      this.dy = moveDiv.offsetTop;
+      if (moveDiv) {
+        this.flags = true;
+        var touch;
+        if (event.touches) touch = event.touches[0];
+        else touch = event;
+        this.position.x = touch.clientX;
+        this.position.y = touch.clientY;
+        this.dx = moveDiv.offsetLeft;
+        this.dy = moveDiv.offsetTop;
+      }
     },
     // 移动上传图片
     move() {
@@ -217,6 +222,11 @@ export default {
         this.xPum = this.dx + this.nx;
         this.yPum = this.dy + this.ny;
         let moveDiv = document.getElementById("phone_case");
+        let moveDiv1 = document.getElementById("phone_case1");
+        if (moveDiv1) {
+          moveDiv1.style.left = this.xPum + "px";
+          moveDiv1.style.bottom = this.yPum + "px";
+        }
         moveDiv.style.left = this.xPum + "px";
         moveDiv.style.top = this.yPum + "px";
       }
@@ -225,10 +235,7 @@ export default {
     onNextStep() {
       if (this.uploaded_picture) {
         this.ismaking = !this.ismaking;
-        let imageWrapper = document.getElementById(
-          "imageWrapper" + this.custom_info.customize_type
-        );
-        html2canvas(imageWrapper, {
+        html2canvas(document.getElementById("imageWrapper"), {
           useCORS: true,
           allowTaint: true,
           taintTest: false,
@@ -250,7 +257,7 @@ export default {
     },
     // 网络请求
     _ImagesUpload(dataURL) {
-      compress(dataURL, 1.5, base64 => {
+      compress(dataURL, base64 => {
         ImagesUpload({
           file: base64,
           type: "custom",
@@ -261,18 +268,96 @@ export default {
     _SubmitInfo(thumb) {
       let { id, gid, name, isextend } = this.custom_info;
       let params = {};
-      if (isextend) params = { thumb, id, gid, name };
-      else params = { thumb, gid: id };
+      if (isextend)
+        params = { thumb, id, gid, name, old_thumb: this.uploaded_picture };
+      else params = { thumb, gid: id, old_thumb: this.uploaded_picture };
       SubmitInfo(params).then(res => {
         this.$router.push({ path: "/customizeDetails", query: { id: res.id } });
         this.ismaking = !this.ismaking;
       });
     }
   },
+  watch: {
+    uploaded_picture: function() {
+      this.$nextTick(function() {
+        var that = this;
+        // 对上传的图片进行手势操作
+        var imageWrapper = document.getElementById("imageWrapper");
+        var pinchRotateImg = document.getElementById("operatingImg");
+        // var pinchRotateImg1 = document.getElementById("operatingImg1");
+        Transform(pinchRotateImg);
+        // if (pinchRotateImg1) Transform(pinchRotateImg1);
+        new AlloyFinger(imageWrapper, {
+          rotate: function(evt) {
+            pinchRotateImg.rotateZ += evt.angle;
+          },
+          multipointStart: function() {
+            that.initScale = pinchRotateImg.scaleX;
+          },
+          pinch: function(evt) {
+            pinchRotateImg.scaleX = pinchRotateImg.scaleY =
+              that.initScale * evt.zoom;
+          },
+          pressMove: function(evt) {
+            pinchRotateImg.translateX += evt.deltaX;
+            pinchRotateImg.translateY += evt.deltaY;
+            evt.preventDefault();
+          }
+        });
+      });
+    },
+    ismirror: function() {
+      var that = this;
+      if (this.uploaded_picture) {
+        this.$nextTick(function() {
+          // 对上传的图片进行手势操作
+          var imageWrapper = document.getElementById("imageWrapper");
+          var pinchRotateImg = document.getElementById("operatingImg");
+          var pinchRotateImg1 = document.getElementById("operatingImg1");
+          Transform(pinchRotateImg);
+          if (this.ismirror && pinchRotateImg1) {
+            pinchRotateImg1.style.transform = transformProcess(pinchRotateImg);
+          }
+          new AlloyFinger(imageWrapper, {
+            rotate: function(evt) {
+              if (!that.ismirror) pinchRotateImg.rotateZ += evt.angle;
+            },
+            multipointStart: function() {
+              that.initScale = pinchRotateImg.scaleX;
+              if (that.ismirror && pinchRotateImg1) {
+                pinchRotateImg1.style.transform = transformProcess(
+                  pinchRotateImg
+                );
+              }
+            },
+            pinch: function(evt) {
+              pinchRotateImg.scaleX = pinchRotateImg.scaleY =
+                that.initScale * evt.zoom;
+              if (that.ismirror) {
+                pinchRotateImg1.style.transform = transformProcess(
+                  pinchRotateImg
+                );
+              }
+            },
+            pressMove: function(evt) {
+              pinchRotateImg.translateX += evt.deltaX;
+              pinchRotateImg.translateY += evt.deltaY;
+              if (that.ismirror && pinchRotateImg1) {
+                pinchRotateImg1.style.transform = transformProcess(
+                  pinchRotateImg
+                );
+              }
+              evt.preventDefault();
+            }
+          });
+        });
+      }
+    }
+  },
   created() {
     if (this.$store.state.custom_info && this.$store.state.custom_info.id) {
       this.custom_info = { ...this.$store.state.custom_info };
-      document.title = "定制" + this.custom_info.title;
+      document.title = this.custom_info.title;
     } else this.$router.push("/customizeList");
   },
   mounted() {
@@ -298,28 +383,46 @@ export default {
     window.removeEventListener("popstate", this.onClickReturn, false); //false阻止默认事件
   },
   components: {
-    ReturnBtn
+    ReturnBtn,
+    PhoneCase, // 手机壳
+    Pillow, // 抱枕
+    cup, // 杯子
+    ShoulderBag, // 挎包
+    StationeryBox // 文具盒
   }
 };
 </script>
 <style lang="less">
 .customize {
   .customize_group {
+    .van-checkbox {
+      position: absolute;
+      top: -30px;
+      right: 30px;
+      min-width: 160px;
+      height: 60px;
+      background-color: #ff7024;
+      border-radius: 30px;
+      font-size: 30px;
+      .van-checkbox__icon {
+        margin-left: 5px;
+        margin-bottom: 3px;
+        border-radius: 50%;
+        border: 1px solid #ff7024;
+      }
+      .van-checkbox__label {
+        margin-left: 5px;
+        font-size: 24px;
+        color: #ffffff;
+      }
+    }
     .upload_img {
-      .van-uploader {
-        .van-uploader__wrapper,
-        .van-uploader__input-wrapper,
+      .img_uploader {
         .van-button--normal {
           width: 100%;
           height: 100%;
-        }
-        .van-uploader__wrapper {
-          .van-uploader__input-wrapper {
-            .van-button--normal {
-              font-size: 36px;
-              font-weight: 700;
-            }
-          }
+          font-size: 36px;
+          font-weight: 700;
         }
       }
     }
@@ -331,6 +434,7 @@ export default {
   .customize_group {
     .customize_commodity {
       position: relative;
+      margin-top: 10px;
       .commodity_img {
         position: relative;
         display: flex;
@@ -363,110 +467,9 @@ export default {
             }
           }
         }
-        .phone_case_group {
-          position: relative;
-          width: 316.5px;
-          height: 652px;
-          background-color: #000000;
-          border-radius: 30px;
-          overflow: hidden;
-          .camera {
-            position: absolute;
-            top: 77px;
-            left: 110.5px;
-            width: 96px;
-            height: 92px;
-            z-index: 1;
-          }
-          .fingerprint {
-            position: absolute;
-            top: 177.5px;
-            left: 133px;
-            width: 51px;
-            height: 51px;
-            z-index: 1;
-          }
-          #phone_case {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: auto;
-            max-height: 100%;
-            /* z-index: 9; */
-          }
-        }
-        .pillow_group {
-          position: relative;
-          width: 550px;
-          height: 550px;
-          background-repeat: no-repeat;
-          background-size: cover;
-          .model_img {
-            width: 100%;
-            height: 100%;
-          }
-          div {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 550px;
-            height: 550px;
-            overflow: hidden;
-            z-index: 1;
-            img {
-              position: absolute;
-              left: 50px;
-              top: 70px;
-              width: auto;
-              max-height: 100%;
-            }
-          }
-          .pillow_mask {
-            background: url("~assets/img/customize/pillow_mask.png") no-repeat;
-            background-size: cover;
-            z-index: 2;
-          }
-        }
-        .shoulder_bag_group {
-          position: relative;
-          width: 75.33%;
-          height: 91.5%;
-          background-repeat: no-repeat;
-          background-size: cover;
-          .model_img {
-            width: 100%;
-            height: 100%;
-          }
-          div {
-            position: absolute;
-            left: 0;
-            bottom: 0;
-            width: 100%;
-            height: 68.6%;
-            overflow: hidden;
-            img {
-              position: absolute;
-              left: 0;
-              top: 0;
-              width: auto;
-              max-height: 100%;
-            }
-          }
-          .shoulder_bag_mask {
-            width: 100%;
-            height: 100%;
-            background: url("~assets/img/customize/satchel_mask.png") no-repeat;
-            background-size: cover;
-            z-index: 2;
-          }
-        }
-        // img {
-        //   width: auto;
-        //   height: 56%;
-        // }
       }
       .customize_info {
-        position: absolute;
+        position: relative;
         right: 0;
         bottom: 0;
         left: 0;
@@ -506,10 +509,21 @@ export default {
       background-color: #ffffff;
       color: #999999;
       font-size: 24px;
-      .van-uploader {
+      .img_uploader {
+        position: relative;
         width: 690px;
         height: 90px;
         margin: 18px 0 28px;
+        .input_uploader {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          overflow: hidden;
+          cursor: pointer;
+          opacity: 0;
+        }
       }
     }
   }

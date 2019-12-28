@@ -1,7 +1,17 @@
 <template>
   <div class="foundation">
     <return-btn @onClickReturn="onClickReturn" />
-    <div v-html="foundation_details" />
+    <div class="public_welfare_amount_stand_by">
+      <div>
+        <p class="amount_number">{{ info.price }}</p>
+        <p>金额（元）</p>
+      </div>
+      <div>
+        <p class="stand_by_number">{{ info.num }}</p>
+        <p>支持人数</p>
+      </div>
+    </div>
+    <div v-html="info.details" />
   </div>
 </template>
 
@@ -11,7 +21,7 @@ import { PublicPoolDetail } from "network/charityPool";
 export default {
   data() {
     return {
-      foundation_details: ""
+      info: {}
     };
   },
   methods: {
@@ -23,7 +33,7 @@ export default {
       const { pid } = this.$route.query;
       PublicPoolDetail(pid).then(res => {
         document.title = res.info.name;
-        this.foundation_details = res.info.details;
+        this.info = res.info;
       });
     }
   },
@@ -48,6 +58,28 @@ export default {
 <style lang="less">
 .foundation {
   padding: 50px 30px;
+  .public_welfare_amount_stand_by {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    text-align: center;
+    margin-bottom: 40px;
+    font-size: 24px;
+    line-height: 32px;
+    font-weight: 700;
+    color: #999999;
+    .amount_number,
+    .stand_by_number {
+      margin-bottom: 24px;
+      font-family: "DIN-Black";
+      font-size: 48px;
+      line-height: 56px;
+      color: #ff7301;
+    }
+  }
+  p {
+    text-indent: 0;
+  }
   img {
     max-width: 100%;
     max-height: auto;

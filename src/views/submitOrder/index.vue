@@ -5,14 +5,7 @@
       <img class="address" src="@/assets/img/icon/address.png" />
       <div v-if="address_info && Object.keys(address_info).length">
         <h6 class="receipt_info_name">{{ address_info.name }}</h6>
-        <p class="receipt_info_address">
-          {{
-            address_info.province +
-              address_info.city +
-              address_info.county +
-              address_info.address
-          }}
-        </p>
+        <p class="receipt_info_address">{{ addressInfo }}</p>
       </div>
       <span v-else>请添加收货地址</span>
       <img class="arrow_r" src="@/assets/img/icon/arrow_r.png" />
@@ -43,11 +36,7 @@
         </div>
         <div class="order_charitable">
           <span>公益宝贝</span>
-          <span>{{
-            order_info.pid
-              ? `成交后平台将以您的名义捐赠${order_info.pprice}给${order_info.pname}`
-              : "未参与公益项目"
-          }}</span>
+          <span>成交后平台将捐赠{{ order_info.pprice }}元给公益项目</span>
         </div>
         <div class="order_quantity_subtotal">
           <span>共{{ order_info.ordernum }}件</span>
@@ -86,6 +75,13 @@ export default {
       freight: ""
     };
   },
+  computed: {
+    addressInfo: function() {
+      let { province, city, county, address } = this.address_info;
+      let address_info = province + city + county + address;
+      return address_info;
+    }
+  },
   methods: {
     // 返回上一页
     onClickReturn() {
@@ -109,8 +105,6 @@ export default {
         let params = { freight: this.freight, ...data, addressid, orderprice };
         this._ArtistAddOrder(params);
       }
-
-      // this.$router.push("/paySuccess");
     },
     // 网络请求
     // 定制的请求
@@ -217,6 +211,7 @@ export default {
     }
   },
   created() {
+    this.$store.commit("pInfo", "");
     let { type } = this.$store.state.submit_info;
     if (type == "share") this._ShareGoodsOver();
     else if (type == "customize") this._CustomGoodsOver();

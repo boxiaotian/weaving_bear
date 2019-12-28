@@ -71,7 +71,7 @@ export default {
       GetRecommendCode().then(res => (this.want_info = res));
     },
     _ImagesUpload(dataURL) {
-      compress(dataURL, 1.5, base64 => {
+      compress(dataURL, base64 => {
         ImagesUpload({ file: base64, type: "share" }).then(res => {
           this.share_img = res.file_url;
           this.show_certificate = !this.show_certificate;

@@ -1,30 +1,38 @@
 <template>
   <div class="sharing_rewards">
     <return-btn @onClickReturn="onClickReturn" />
-    <div class="sharing_rewards_item" v-for="item in 3" :key="item">
+    <div
+      class="sharing_rewards_item"
+      v-for="item in share_commission_list"
+      :key="item.id"
+    >
       <div class="sharing_rewards_month">
-        <span>2019/{{ 11 - item }}</span>
-        <span>收入：￥5.76</span>
+        <span>{{ item.date }}</span>
+        <!-- <span>收入：￥5.76</span> -->
       </div>
-      <div class="sharing_rewards_source" v-for="item in 2" :key="item">
+      <div
+        class="sharing_rewards_source"
+        v-for="item1 in item.list"
+        :key="item1.id"
+      >
         <div class="commodity_info">
           <div class="commodity_info_left">
             <div class="commodity_img_group">
-              <img src="~assets/img/customize/phone_case.png" />
+              <img :src="$store.state.interface_domain + item1.gthumb" />
             </div>
             <div style="width:78%">
-              <h5>定制手机壳定制手机壳定制手机壳定制手机壳</h5>
-              <h6>高清彩印 来图定制高清彩印 来图定制高清彩印 来图定制</h6>
+              <h5>{{ item1.gtitle }}</h5>
+              <h6>{{ item1.gdescri }}</h6>
             </div>
           </div>
-          <div class="reward_price">+2000.88</div>
+          <div class="reward_price">+{{ item1.shareprice }}</div>
         </div>
         <div class="buyers">
           <div>
-            <img src="" />
-            <span>购买者</span>
+            <img :src="item1.avatar" />
+            <span>{{ item1.nickname }}</span>
           </div>
-          <div><span>2019.10.26</span><span>15:59</span></div>
+          <div>{{ item1.overtime }}</div>
         </div>
       </div>
     </div>
@@ -33,11 +41,60 @@
 
 <script>
 import { ReturnBtn } from "components/index";
+import { ShareCommission } from "network/profile";
 export default {
+  data() {
+    return {
+      share_commission_list: [],
+      isrequest: true,
+      page: 1
+    };
+  },
   methods: {
     onClickReturn() {
       this.$router.replace("/profile");
+    },
+    // 网络请求
+    _ShareCommission() {
+      if (this.isrequest) {
+        ShareCommission(this.page++).then(res => {
+          if (res.list.length == 10) this.isrequest = true;
+          else this.isrequest = false;
+          let share_data = {};
+          while (res.list.length) {
+            let current = res.list.pop(); // 会影响原数组
+            share_data[current.date] = share_data[current.date] || [];
+            share_data[current.date].push(current);
+          }
+          Object.keys(share_data).map((key, index) => {
+            this.share_commission_list.push({
+              id: index + 1,
+              date: key,
+              list: share_data[key]
+            });
+          });
+        });
+      }
+    },
+    // 可滚动容器的高度
+    onScroll() {
+      let innerHeight = document.querySelector("#app").clientHeight;
+      let outerHeight = document.documentElement.clientHeight;
+      let scrollTop =
+        document.documentElement.scrollTop ||
+        document.body.scrollTop ||
+        window.pageYOffset;
+      if (innerHeight - outerHeight - 50 < scrollTop) {
+        this._ShareCommission();
+      }
     }
+  },
+  created() {
+    this._ShareCommission();
+    window.onscroll = () => this.onScroll();
+  },
+  beforeDestroy() {
+    window.onscroll = "";
   },
   components: {
     ReturnBtn
@@ -85,8 +142,10 @@ export default {
             box-shadow: 0px 0px 40px 0px rgba(0, 0, 0, 0.05);
             border-radius: 18px;
             img {
+              display: block;
               width: auto;
               height: 100%;
+              margin: auto;
             }
           }
           h5 {

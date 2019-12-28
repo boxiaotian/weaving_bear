@@ -6,41 +6,44 @@
     <return-btn @onClickReturn="onClickReturn" />
     <div class="my_certificate_top" ref="my_certificate_top">
       <div class="my_certificate_info">
-        <img class="profile_avatar" src="~assets/img/home/artist_three.png" />
+        <img class="profile_avatar" :src="user_info.avatar" />
         <div class="profile_info">
-          <div class="profile_name">宅在家里的旅行家</div>
-          <div>已获得证书：4</div>
+          <div class="profile_name">{{ user_info.nickname }}</div>
+          <div>已获得证书：{{ user_info.certNum }}</div>
         </div>
       </div>
       <div
         class="my_certificate_group"
+        ref="my_certificate_group"
+        @scroll="listScroll($event)"
         :style="{ height: certificate_height.toFixed(3) + 'rem' }"
       >
-        <div
-          class="my_certificate_item"
-          v-for="item in 6"
-          :key="item"
-          @click="onViewCertificate"
-        >
-          <img
-            class="my_certificate_img"
-            src="~assets/img/profile/certificate.png"
-          />
-          <h6>红十字基金会</h6>
-          <div>2019.11.06</div>
+        <div class="my_certificate_content" id="my_certificate_group">
+          <div
+            class="my_certificate_item"
+            v-for="item in certificccate_list"
+            :key="item.id"
+            @click="onViewCertificate(item.id)"
+          >
+            <img
+              class="my_certificate_img"
+              src="~assets/img/profile/certificate.png"
+            />
+            <h6>{{ item.name }}</h6>
+            <div>{{ item.createtime }}</div>
+            <!-- <van-overlay :show="item.id == 15"> -->
+            <div class="certificate_box" :id="'imageWrapper' + item.id">
+              <img src="~assets/img/profile/certificate_box.png" />
+              <span class="winner">{{ user_info.nickname }}</span>
+              <span class="award_info">{{ item.createtime }}</span>
+            </div>
+            <!-- </van-overlay> -->
+          </div>
         </div>
       </div>
     </div>
     <van-overlay :show="show_certificate" @click="show_certificate = false">
-      <div class="certificate_box">
-        <img src="~assets/img/profile/certificate_box.png" />
-        <div class="winner">张三</div>
-        <div class="award_info">
-          <span>2019.11.06</span>
-          <span>红十字公益基金会</span>
-        </div>
-        <img class="chapter" src="~assets/img/profile/chapter.png" />
-      </div>
+      <img class="certificate_box_img" :src="certificate_img" />
       <van-icon
         class="certificate_box_close"
         name="close"
@@ -52,22 +55,63 @@
 </template>
 
 <script>
+import html2canvas from "html2canvas";
 import { ReturnBtn } from "components/index";
+import { PublicCert } from "network/profile";
 export default {
   data() {
     return {
       window_height: 0,
       certificate_height: 0,
-      show_certificate: false
+      show_certificate: false, // 查看证书
+      certificate_img: "", // 证书大图
+      user_info: {}, // 用户信息
+      certificccate_list: [], // 证书列表
+      isrequest: true, //是否请求
+      page: 1 // 分页
     };
   },
   methods: {
     onClickReturn() {
       this.$router.replace("/profile");
     },
-    onViewCertificate() {
-      this.show_certificate = !this.show_certificate;
+    onViewCertificate(id) {
+      html2canvas(document.getElementById("imageWrapper" + id), {
+        useCORS: true,
+        allowTaint: true,
+        taintTest: false,
+        backgroundColor: "rgba(0,0,0,0)",
+        logging: false
+      }).then(canvas => {
+        let dataURL = canvas.toDataURL("image/png");
+        this.show_certificate = !this.show_certificate;
+        this.certificate_img = dataURL;
+      });
+    },
+    // 网络请求
+    _PublicCert() {
+      if (this.isrequest) {
+        PublicCert(this.page++).then(res => {
+          if (res.list.length == 10) this.isrequest = true;
+          else this.isrequest = false;
+          if (this.page == 2) this.user_info = res.uinfo;
+          this.certificccate_list = this.certificccate_list.concat(res.list);
+        });
+      }
+    },
+    // 可滚动容器的高度
+    listScroll($event) {
+      let innerHeight = document.getElementById("my_certificate_group")
+        .clientHeight;
+      let outerHeight = this.$refs.my_certificate_group.clientHeight;
+      let scrollTop = $event.target.scrollTop;
+      if (innerHeight - outerHeight - 50 < scrollTop) {
+        this._PublicCert();
+      }
     }
+  },
+  created() {
+    this._PublicCert();
   },
   mounted() {
     const windowHeight = window.outerHeight
@@ -84,24 +128,6 @@ export default {
 };
 </script>
 
-<style lang="less">
-.my_certificate {
-  .my_certificate_top {
-    .van-nav-bar {
-      background-color: rgba(0, 0, 0, 0);
-      .van-nav-bar__left {
-        .van-nav-bar__arrow {
-          background: url("~assets/img/return_arrow_w.png") no-repeat;
-          background-size: cover;
-        }
-      }
-      .van-nav-bar__title {
-        color: #ffffff;
-      }
-    }
-  }
-}
-</style>
 <style lang="less" scoped>
 .my_certificate {
   .my_certificate_top {
@@ -132,9 +158,6 @@ export default {
       }
     }
     .my_certificate_group {
-      display: flex;
-      flex-flow: wrap;
-      justify-content: space-between;
       overflow-y: auto;
       position: absolute;
       left: 0;
@@ -142,31 +165,36 @@ export default {
       width: 100%;
       height: auto;
       padding: 78px 30px 36px;
-      border-radius: 50px 50px 0px 0px;
       background-color: #ffffff;
-      .my_certificate_item {
+      border-radius: 50px 50px 0px 0px;
+      .my_certificate_content {
         display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        width: 330px;
-        height: 400px;
-        margin-bottom: 30px;
-        background-color: #ffffff;
-        box-shadow: 0px 0px 40px 0px rgba(0, 0, 0, 0.05);
-        border-radius: 18px;
-        font-size: 18px;
-        color: #384346;
-        .my_certificate_img {
-          width: 120px;
-          height: 176px;
-          margin: 40px 0;
-        }
-        h6 {
-          margin: 20px 0;
-          font-size: 30px;
-          font-weight: 300;
-          line-height: 30px;
+        flex-flow: wrap;
+        justify-content: space-between;
+        .my_certificate_item {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          width: 330px;
+          height: 400px;
+          margin-bottom: 30px;
+          background-color: #ffffff;
+          box-shadow: 0px 0px 40px 0px rgba(0, 0, 0, 0.05);
+          border-radius: 18px;
+          font-size: 18px;
+          color: #384346;
+          .my_certificate_img {
+            width: 120px;
+            height: 176px;
+            margin: 40px 0;
+          }
+          h6 {
+            margin: 20px 0;
+            font-size: 30px;
+            font-weight: 300;
+            line-height: 30px;
+          }
         }
       }
     }
@@ -177,53 +205,38 @@ export default {
     align-items: center;
     justify-content: center;
     background-color: rgba(0, 0, 0, 0.3);
-    .certificate_box {
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      position: relative;
+    .certificate_box_img {
       width: 690px;
-      height: 1002px;
-      padding: 22px 16px;
-      background-color: #ffffff;
-      color: #384346;
-      text-align: center;
-      img {
-        width: 100%;
-        height: 100%;
-      }
-      .winner {
-        position: absolute;
-        top: 400px;
-        right: 0;
-        left: 0;
-        font-size: 30px;
-        line-height: 54px;
-      }
-      .award_info {
-        display: flex;
-        flex-direction: row;
-        justify-content: space-between;
-        position: absolute;
-        right: 76px;
-        bottom: 130px;
-        left: 92px;
-        z-index: 1;
-        // padding: 0 16px 0 32px;
-        font-size: 24px;
-        line-height: 24px;
-      }
-      .chapter {
-        position: absolute;
-        right: 104px;
-        bottom: 104px;
-        width: 140px;
-        height: 140px;
-      }
+      height: 1030px;
     }
     .certificate_box_close {
       margin-top: 58px;
       font-size: 60px;
+    }
+  }
+  .certificate_box {
+    position: fixed;
+    width: 690px;
+    height: 1030px;
+    background-color: #ffffff;
+    color: #854e00;
+    font-size: 24px;
+    z-index: -1;
+    img {
+      width: 100%;
+      height: 100%;
+    }
+    .winner {
+      position: absolute;
+      top: 326px;
+      left: 94px;
+    }
+    .award_info {
+      position: absolute;
+      right: 100px;
+      bottom: 154px;
+      z-index: 1;
+      font-size: 18px;
     }
   }
 }

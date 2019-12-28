@@ -7,11 +7,11 @@ const {
 } = $store.state;
 
 // 公益池列表
-export function PublicPoolList(page) {
+export function PublicPoolList(page, pageNum = 10) {
   return request({
     url: "/Apiindex/publicPoolList",
     method: "POST",
-    data: { openid, token, uniacid, page }
+    data: { openid, token, uniacid, page, pageNum }
   });
 }
 // 公益池详情
