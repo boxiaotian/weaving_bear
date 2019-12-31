@@ -36,7 +36,7 @@
         </div>
         <div class="order_charitable">
           <span>公益宝贝</span>
-          <span>成交后平台将捐赠{{ order_info.pprice }}元给公益项目</span>
+          <span>成交后织布熊将捐赠{{ order_info.pprice }}元给公益项目</span>
         </div>
         <div class="order_quantity_subtotal">
           <span>共{{ order_info.ordernum }}件</span>

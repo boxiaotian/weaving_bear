@@ -66,8 +66,6 @@ export default {
       OrderDetail(this.$route.query.id).then(res => {
         this.order_details = res.info;
         if (res.info.freight_number && res.info.freight_name) {
-          console.log(111);
-
           this._GetLogistics({
             number: res.info.freight_number,
             name: res.info.freight_name,

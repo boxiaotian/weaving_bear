@@ -257,13 +257,13 @@ export default {
     },
     // 网络请求
     _ImagesUpload(dataURL) {
-      compress(dataURL, base64 => {
-        ImagesUpload({
-          file: base64,
-          type: "custom",
-          gid: this.custom_info.id
-        }).then(res => this._SubmitInfo(res.file_path));
-      });
+      // compress(dataURL, base64 => {
+      ImagesUpload({
+        file: dataURL,
+        type: "custom",
+        gid: this.custom_info.id
+      }).then(res => this._SubmitInfo(res.file_path));
+      // });
     },
     _SubmitInfo(thumb) {
       let { id, gid, name, isextend } = this.custom_info;

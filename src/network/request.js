@@ -9,11 +9,11 @@ export function request(options) {
     forbidClick: true,
     message: "加载中..."
   });
-  return new Promise((resolve, reject) => {
+  return new Promise(resolve => {
     // 1.创建axios的实例对象
     const instance = axios.create({
       baseURL: "http://zbx.yuncshop.com/api",
-      timeout: 5000
+      timeout: 30000
     });
 
     // 过滤器(拦截器)
@@ -35,8 +35,8 @@ export function request(options) {
         } else if (res.msg == "参数错误") router.push("/home");
         else Toast("网络错误，请稍后重试");
       })
-      .catch(err => {
-        reject(err);
+      .catch(() => {
+        Toast("网络不问题,请使用其他网络环境");
       });
   });
 }

@@ -65,8 +65,8 @@ export default {
     },
     onWithdrawWeChat() {
       if (!this.amount_value) this.$toast("请输入提现余额");
-      else if (this.amount_value <= 0) this.$toast("可提现余额太小");
-      else if (this.amount_value >= this.money) this.$toast("超出可提现范围");
+      else if (this.amount_value <= 0) this.$toast("可提现余额不足");
+      else if (this.amount_value > this.money) this.$toast("超出可提现范围");
       else this._AddApply();
     },
     onInput() {},

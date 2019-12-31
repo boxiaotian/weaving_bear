@@ -40,7 +40,7 @@
       <div class="public_interest_name">
         <span>公益宝贝</span>
         <span
-          ><span>成交后平台将捐赠{{ item.pprice }}元给公益项目</span></span
+          ><span>成交后织布熊将捐赠{{ item.pprice }}元给公益项目</span></span
         >
       </div>
       <div class="my_order_item_bottom">

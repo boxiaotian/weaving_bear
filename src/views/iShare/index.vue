@@ -10,7 +10,7 @@
     </div>
     <div class="i_share_form_group">
       <div class="share_form_title">
-        <span>选择公益</span>（平台将根据您的建议给所选公益项目捐赠）
+        <span>选择公益</span>（织布熊将根据您的建议给所选公益项目捐赠）
       </div>
       <van-dropdown-menu active-color="#ff7301">
         <van-dropdown-item v-model="public_value" :options="public_option" />
@@ -69,7 +69,7 @@ export default {
             }
           });
         } else {
-          this.share_descri = `尊敬的各位亲朋好友，我是${this.share_name}，这是我设计的美术衍生品。每销售一款我设计的作品，平台都将捐赠一定的金额给公益项目。您可以建议平台将款项捐赠给您支持的项目。
+          this.share_descri = `尊敬的各位亲朋好友，我是${this.share_name}，这是我设计的美术衍生品。每销售一款我设计的作品，织布熊都将捐赠一定的金额给公益项目。您可以建议织布熊将款项捐赠给您支持的项目。
 
 积小流，聚江海。一点点小的善意也会化作星光照亮前行的路，星辰大海永远不会被现实消磨，希望可以获得每一个充满善意的心的支持。`;
         }
@@ -137,7 +137,7 @@ export default {
             }
           });
         } else {
-          this.share_descri = `尊敬的各位亲朋好友，我是${this.share_name}，这是我设计的美术衍生品。每销售一款我设计的作品，平台都将捐赠一定的金额给公益项目。您可以建议平台将款项捐赠给您支持的项目。
+          this.share_descri = `尊敬的各位亲朋好友，我是${this.share_name}，这是我设计的美术衍生品。每销售一款我设计的作品，织布熊都将捐赠一定的金额给公益项目。您可以建议织布熊将款项捐赠给您支持的项目。
 
 积小流，聚江海。一点点小的善意也会化作星光照亮前行的路，星辰大海永远不会被现实消磨，希望可以获得每一个充满善意的心的支持。`;
         }

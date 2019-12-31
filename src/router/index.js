@@ -235,7 +235,7 @@ const routes = [
     path: "/distributor",
     name: "distributor",
     meta: {
-      title: "注册成为分销商"
+      title: "申请成为公益推广大使"
     },
     component: Distributor
   },

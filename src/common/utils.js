@@ -39,15 +39,13 @@ export function compress(base64, callback) {
   //处理缩放，转格式
   var _img = new Image();
   _img.src = base64;
-  // eslint-disable-next-line prettier/prettier
   _img.onload = function () {
     var _canvas = document.createElement("canvas");
     var w = this.width;
     var h = this.height;
-    // _canvas.setAttribute("background", "rgba(0,0,0,0)");
-    // _canvas.setAttribute("border", "none");
     _canvas.setAttribute("width", w);
     _canvas.setAttribute("height", h);
+    _canvas.strokeStyle = 'white';
     _canvas.getContext("2d").drawImage(this, 0, 0, w, h);
     var base64 = _canvas.toDataURL("image/jpeg");
     _canvas.toBlob(function () {
@@ -67,17 +65,8 @@ export function onBridgeReady(WeixinParameter) {
       }
     } else {
       // eslint-disable-next-line no-undef
-      // WeixinJSBridge.invoke("getBrandWCPayRequest", WeixinParameter).then(
-      //   res => {
-      //     if (res.err_msg == "get_brand_wcpay_request:ok") resolve(res);
-      //     else console.log("失败");
-      //   }
-      // );
-      // eslint-disable-next-line no-undef
       WeixinJSBridge.invoke("getBrandWCPayRequest", WeixinParameter, res => {
-        // let res1 =
         return resolve(res);
-        // if (res.err_msg == "get_brand_wcpay_request:ok") {}
       });
     }
   });
@@ -88,8 +77,12 @@ export function transformProcess(element) {
   let transform_array = element.style.transform.replace(/\s+/g, "").split(",");
   let transform_str = "";
   transform_array.map((item, index) => {
-    if (index == 5 || index == 13) transform_str += `-${item},`;
-    else transform_str += `${item},`;
+    if (index == 5) transform_str += `-${item},`;
+    else if (index == 13 && item.indexOf("-") != -1) {
+      transform_str += `${item.replace(/-/g, "")},`;
+    } else if (index == 13 && item.indexOf("-") == -1) {
+      transform_str += `-${item},`;
+    } else transform_str += `${item},`;
   });
   if (transform_str.length) {
     transform_str = transform_str.substr(0, transform_str.length - 1);

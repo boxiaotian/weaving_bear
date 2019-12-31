@@ -335,6 +335,7 @@ export default {
         padding: 4px 30px;
         font-size: 30px;
         .van-cell__title {
+          flex: none;
           color: #999999;
         }
         .van-cell__value {
@@ -362,6 +363,7 @@ export default {
         height: 100%;
       }
       .winner {
+        position: absolute;
         top: 326px;
         left: 94px;
       }

@@ -101,7 +101,7 @@
       </div>
       <!-- <div class="charitable_projects">
         <h6>
-          选择公益项目支持 <span>（平台将以您的名义给所选公益项目捐赠）</span>
+          选择公益项目支持 <span>（织布熊将以您的名义给所选公益项目捐赠）</span>
         </h6>
         <div class="commodity_charitable_select" @click="onCharitableSelect">
           {{ selected_public.name }}

@@ -40,7 +40,7 @@
           <span>公益宝贝</span>
           <span>{{
             item.pid
-              ? `成交后平台将以您的名义捐赠${item.pprice}给${item.pname}`
+              ? `成交后织布熊将以您的名义捐赠${item.pprice}给${item.pname}`
               : "未参与公益项目"
           }}</span>
         </div>

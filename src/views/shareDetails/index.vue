@@ -104,7 +104,7 @@
       </div>
       <!-- <div class="charitable_projects">
         <h6>
-          选择公益项目支持 <span>（平台将以您的名义给所选公益项目捐赠）</span>
+          选择公益项目支持 <span>（织布熊将以您的名义给所选公益项目捐赠）</span>
         </h6>
         <div class="commodity_charitable_select" @click="onCharitableSelect">
           {{ selected_public.name }}
@@ -248,7 +248,7 @@ export default {
         num: this.number_value,
         remark: this.product_notes
       };
-      if (this.details.isextend && this.product_notes) {
+      if (this.details.isextend && !this.product_notes) {
         this.$toast("请备注你的手机壳机型");
       } else {
         this.$store.commit("submitInfo", { data, type: "share" });
@@ -267,7 +267,7 @@ export default {
         num: this.number_value,
         remark: this.product_notes
       };
-      if (this.details.isextend && this.product_notes) {
+      if (this.details.isextend && !this.product_notes) {
         this.$toast("请备注你的手机壳机型");
       } else this._AddCart(data);
     },

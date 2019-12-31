@@ -71,7 +71,7 @@ import ShoulderBag from "./editProducts/shoulderBag";
 import cup from "./editProducts/cup";
 import StationeryBox from "./editProducts/stationeryBox";
 import Transform from "common/transform";
-import { compress, transformProcess } from "common/utils";
+import { transformProcess } from "common/utils";
 import { ReturnBtn } from "components/index";
 import { ImagesUpload } from "network/home";
 import { ShareInfo } from "network/share";
@@ -144,19 +144,19 @@ export default {
       );
     },
     _ImagesUpload(dataURL) {
-      compress(dataURL, base64 => {
-        ImagesUpload({ file: base64, type: "share" }).then(res => {
-          let { id, gid, name, isextend } = this.custom_info;
-          this.$store.commit("shareGoods", {
-            gid: isextend ? gid : id,
-            cid: isextend ? id : "",
-            cname: isextend ? name : "",
-            thumb: res.file_path
-          });
-          this.$router.push("/shareList");
-          this.ismaking = !this.ismaking;
+      // compress(dataURL, base64 => {
+      ImagesUpload({ file: dataURL, type: "share" }).then(res => {
+        let { id, gid, name, isextend } = this.custom_info;
+        this.$store.commit("shareGoods", {
+          gid: isextend ? gid : id,
+          cid: isextend ? id : "",
+          cname: isextend ? name : "",
+          thumb: res.file_path
         });
+        this.$router.push("/shareList");
+        this.ismaking = !this.ismaking;
       });
+      // });
     }
   },
   watch: {

@@ -106,7 +106,7 @@
       </div>
       <!-- <div class="charitable_projects">
         <h6>
-          选择公益项目支持 <span>（平台将以您的名义给所选公益项目捐赠）</span>
+          选择公益项目支持 <span>（织布熊将以您的名义给所选公益项目捐赠）</span>
         </h6>
         <div class="commodity_charitable_select" @click="onCharitableSelect">
           {{ selected_public.name }}
@@ -251,16 +251,14 @@ export default {
     // },
     // 立即购买
     onBuy() {
-      if (this.$store.state.custom_info.isextend) {
-        if (this.product_notes) this.$toast("请备注你的手机壳机型");
-        else this._EditInfo();
+      if (this.$store.state.custom_info.isextend && !this.product_notes) {
+        this.$toast("请备注你的手机壳机型");
       } else this._EditInfo();
     },
     // 加入购物车
     onCart() {
-      if (this.$store.state.custom_info.isextend) {
-        if (this.product_notes) this.$toast("请备注你的手机壳机型");
-        else this._AddCart();
+      if (this.$store.state.custom_info.isextend && !this.product_notes) {
+        this.$toast("请备注你的手机壳机型");
       } else this._AddCart();
     },
     // 网络请求

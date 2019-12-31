@@ -43,11 +43,15 @@
         </div>
       </div>
       <div class="charitable_school">
-        <h6 v-if="Object.keys(share_info.pinfo).length != 0">
+        <!-- <h6 v-if="Object.keys(share_info.pinfo).length != 0">
           公益图文详情
-        </h6>
+        </h6> -->
         <div v-html="share_info.pinfo.details" />
-        <h6 v-if="share_info.aboutus">学校图文详情</h6>
+        <img
+          class="segmentation_graph"
+          src="~assets/img/share/segmentation_graph.png"
+        />
+        <!-- <h6 v-if="share_info.aboutus">学校图文详情</h6> -->
         <div v-html="share_info.aboutus" />
       </div>
     </div>
@@ -147,13 +151,19 @@ export default {
 .share_generate {
   .share_generate_group {
     .charitable_school {
-      h6 {
-        margin: 100px 0 30px;
-        font-size: 30px;
-        font-weight: bold;
+      margin-top: 100px;
+      // h6 {
+      //   margin: 100px 0 30px;
+      //   font-size: 30px;
+      //   font-weight: bold;
+      // }
+      .segmentation_graph {
+        width: 750px;
+        height: 80px;
+        margin: 50px 0;
       }
-      padding: 0 40px;
       div {
+        padding: 0 40px;
         p {
           text-indent: 0;
         }

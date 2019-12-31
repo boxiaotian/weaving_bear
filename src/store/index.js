@@ -32,11 +32,11 @@ export default new Vuex.Store({
         return {
           count: state.count,
           custom_info: state.custom_info,
-          // zbx_user: state.zbx_user,
-          zbx_user: {
-            openid: "ouObrvttwYH79Eb5ct8AB95lNZ5g",
-            token: "d6cc3f1949fb9411541be5079d9b653f"
-          },
+          zbx_user: state.zbx_user,
+          // zbx_user: {
+          //   openid: "ouObrvttwYH79Eb5ct8AB95lNZ5g",
+          //   token: "e07ec50c2c7f77b98f0d047feebc96ac"
+          // },
           uniacid: state.uniacid,
           sid: state.sid,
           promoter_name: state.promoter_name,

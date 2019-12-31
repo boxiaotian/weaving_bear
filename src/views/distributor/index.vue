@@ -52,15 +52,17 @@ export default {
     },
     // 网络请求
     _ApplyRecommend() {
-      ApplyRecommend(this.ambassador_name).then(() => {
-        if (this.$store.state.promoter_name.isrecommend)
-          this.$toast("修改成功");
-        else this.$toast("申请成功");
-        this.$store.commit("promoterName", {
-          isrecommend: 1,
-          name: this.ambassador_name
+      if (!this.isedit) {
+        ApplyRecommend(this.ambassador_name).then(() => {
+          if (this.$store.state.promoter_name.isrecommend)
+            this.$toast("修改成功");
+          else this.$toast("申请成功");
+          this.$store.commit("promoterName", {
+            isrecommend: 1,
+            name: this.ambassador_name
+          });
         });
-      });
+      }
     }
   },
   created() {

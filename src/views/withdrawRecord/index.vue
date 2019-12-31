@@ -45,8 +45,10 @@ export default {
       this.$router.back(-1);
     },
     recordStatus(index) {
-      if (index == 1 || index == 2) return { color: "#ff0000", text: "提现中" };
-      else if (index == 3) return { color: "#ff7301", text: "已打款" };
+      if (index == 1) return { color: "#ff0000", text: "提现中" };
+      else if (index == 2) return { color: "#ff7301", text: "审核成功" };
+      else if (index == 3) return { color: "#999999", text: "审核失败" };
+      else if (index == 4) return { color: "#ff7301", text: "已完成" };
       else return { color: "#999999", text: "打款失败" };
     },
     thisMonth(month) {
